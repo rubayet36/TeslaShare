@@ -6,6 +6,8 @@ import { PrismaModule } from './prisma/prisma.module';
 import { GeographyModule } from './geography/geography.module';
 import { FareModule } from './fare/fare.module';
 import { PoolsModule } from './pools/pools.module';
+import { RidesModule } from './rides/rides.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { PoolsModule } from './pools/pools.module';
     GeographyModule,
     FareModule,
     PoolsModule,
+    RidesModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
