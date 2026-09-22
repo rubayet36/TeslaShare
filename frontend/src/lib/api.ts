@@ -136,6 +136,120 @@ export async function fetchUserRides(userId: string): Promise<RideRecord[]> {
   }
 }
 
+export interface FareQuote {
+  pickupZone: string;
+  destinationZone: string;
+  distanceKm: number;
+  seats: number;
+  isPooled: boolean;
+  baseFarePoysha: number;
+  distanceChargePoysha: number;
+  soloTotalPoysha: number;
+  poolDiscountPoysha: number;
+  finalFarePoysha: number;
+  baseFareBdt: number;
+  distanceChargeBdt: number;
+  soloTotalBdt: number;
+  poolDiscountBdt: number;
+  finalFareBdt: number;
+  handTestFormula: string;
+}
+
+export async function fetchFareEstimate(
+  pickupZone: string,
+  destinationZone: string,
+  isPooled = true,
+  seats = 1,
+): Promise<FareQuote> {
+  try {
+    const res = await fetch(`${API_BASE}/fares/estimate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pickupZone, destinationZone, isPooled, seats }),
+    });
+    if (!res.ok) throw new Error('Fare API failed');
+    const json = await res.json();
+    return json.data;
+  } catch {
+    // Fallback formula math (PRD Section 5)
+    const dist =
+      pickupZone.toLowerCase() === destinationZone.toLowerCase()
+        ? 0.5
+        : destinationZone.includes('Gulshan')
+        ? 2.8
+        : destinationZone.includes('Mohakhali')
+        ? 2.6
+        : 3.5;
+
+    const baseFarePoysha = 3000 * seats;
+    const distanceChargePoysha = Math.round(dist * 1500 * seats);
+    const soloTotal = baseFarePoysha + distanceChargePoysha;
+    const discount = isPooled ? Math.round(soloTotal * 0.3) : 0;
+    const finalFare = soloTotal - discount;
+
+    return {
+      pickupZone,
+      destinationZone,
+      distanceKm: dist,
+      seats,
+      isPooled,
+      baseFarePoysha,
+      distanceChargePoysha,
+      soloTotalPoysha: soloTotal,
+      poolDiscountPoysha: discount,
+      finalFarePoysha: finalFare,
+      baseFareBdt: poyshaToBdt(baseFarePoysha),
+      distanceChargeBdt: poyshaToBdt(distanceChargePoysha),
+      soloTotalBdt: poyshaToBdt(soloTotal),
+      poolDiscountBdt: poyshaToBdt(discount),
+      finalFareBdt: poyshaToBdt(finalFare),
+      handTestFormula: `Base ৳${poyshaToBdt(baseFarePoysha)} + Dist ৳${poyshaToBdt(distanceChargePoysha)} - Pool ৳${poyshaToBdt(discount)} = ৳${poyshaToBdt(finalFare)}`,
+    };
+  }
+}
+
+export async function submitRideRequest(
+  passengerId: string,
+  pickupZone: string,
+  destinationZone: string,
+  seatsRequested = 1,
+  isPooled = true,
+): Promise<RideRecord> {
+  const res = await fetch(`${API_BASE}/rides/request`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      passengerId,
+      pickupZone,
+      destinationZone,
+      seatsRequested,
+      isPooled,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Failed to submit ride request');
+  }
+
+  return await res.json();
+}
+
+export async function cancelRideRequest(rideId: string, userId: string, reason?: string) {
+  const res = await fetch(`${API_BASE}/rides/${rideId}/cancel`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, reason }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Failed to cancel ride');
+  }
+
+  return await res.json();
+}
+
 export function poyshaToBdt(poysha: number): number {
   return Math.round((poysha / 100) * 100) / 100;
 }
@@ -144,3 +258,5 @@ export function formatBdt(poysha: number): string {
   const bdt = poyshaToBdt(poysha);
   return `৳ ${bdt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
+
+

@@ -1,14 +1,19 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useCast } from '../context/CastContext';
 import { WalletCard } from '../components/WalletCard';
 import { RideHistoryCard } from '../components/RideHistoryCard';
-import { MapPin, Users, Zap, Shield, Sparkles } from 'lucide-react';
+import { BookingPanel } from '../components/BookingPanel';
 import DhakaMapDynamic from '../components/DhakaMapDynamic';
+import { MapPin, Users, Zap, Shield, Sparkles } from 'lucide-react';
 
 export default function PassengerPage() {
   const { currentUser } = useCast();
+  const [mapPickup, setMapPickup] = useState('Banani');
+  const [mapDestination, setMapDestination] = useState(
+    currentUser.name === 'Rafiq' ? 'Gulshan 1' : 'Mohakhali',
+  );
 
   return (
     <div className="space-y-6">
@@ -45,7 +50,7 @@ export default function PassengerPage() {
         </div>
       </div>
 
-      {/* Grid: Wallet, Profile & Ride History */}
+      {/* Grid: Booking, Wallet, Profile & Map */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Wallet & Quick Profile */}
         <div className="space-y-6 lg:col-span-1">
@@ -82,13 +87,21 @@ export default function PassengerPage() {
           </div>
         </div>
 
-        {/* Right Column: Ride History & Map Area */}
+        {/* Right Column: Booking Panel, Leaflet Map & Ride History */}
         <div className="space-y-6 lg:col-span-2">
+          {/* Booking Panel with Real-time Fare Calculator */}
+          <BookingPanel
+            onRouteSelected={(pickup, dest) => {
+              setMapPickup(pickup);
+              setMapDestination(dest);
+            }}
+          />
+
           {/* Interactive Leaflet Map Visualizer */}
           <div className="space-y-2">
             <DhakaMapDynamic
-              selectedPickup="Banani"
-              selectedDestination={currentUser.name === 'Rafiq' ? 'Gulshan 1' : 'Mohakhali'}
+              selectedPickup={mapPickup}
+              selectedDestination={mapDestination}
             />
           </div>
 
