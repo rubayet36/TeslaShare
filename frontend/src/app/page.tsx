@@ -4,7 +4,8 @@ import React from 'react';
 import { useCast } from '../context/CastContext';
 import { WalletCard } from '../components/WalletCard';
 import { RideHistoryCard } from '../components/RideHistoryCard';
-import { MapPin, Users, Zap, Shield, Sparkles, AlertCircle } from 'lucide-react';
+import { MapPin, Users, Zap, Shield, Sparkles } from 'lucide-react';
+import DhakaMapDynamic from '../components/DhakaMapDynamic';
 
 export default function PassengerPage() {
   const { currentUser } = useCast();
@@ -83,22 +84,12 @@ export default function PassengerPage() {
 
         {/* Right Column: Ride History & Map Area */}
         <div className="space-y-6 lg:col-span-2">
-          {/* Booking & Map Preview Banner */}
-          <div className="bg-slate-900/60 rounded-2xl p-6 border border-slate-800 text-center flex flex-col items-center justify-center relative overflow-hidden">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-3 shadow-inner">
-              <MapPin className="w-6 h-6" />
-            </div>
-            <h3 className="font-bold text-lg text-white mb-1">
-              Interactive Dhaka Route Visualizer & Booking
-            </h3>
-            <p className="text-xs text-slate-400 max-w-md mb-4">
-              Select your pickup and destination on the Leaflet map to preview real-time 30% pool savings,
-              travel distance, and corridor overlap.
-            </p>
-            <div className="inline-flex items-center space-x-2 text-xs text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20">
-              <AlertCircle className="w-3.5 h-3.5" />
-              <span>Feature 4.2 Leaflet Route Map loading next</span>
-            </div>
+          {/* Interactive Leaflet Map Visualizer */}
+          <div className="space-y-2">
+            <DhakaMapDynamic
+              selectedPickup="Banani"
+              selectedDestination={currentUser.name === 'Rafiq' ? 'Gulshan 1' : 'Mohakhali'}
+            />
           </div>
 
           <RideHistoryCard />
