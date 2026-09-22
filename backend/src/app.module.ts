@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { GeographyModule } from './geography/geography.module';
 import { FareModule } from './fare/fare.module';
+import { PoolsModule } from './pools/pools.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { FareModule } from './fare/fare.module';
     PrismaModule,
     GeographyModule,
     FareModule,
+    PoolsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
