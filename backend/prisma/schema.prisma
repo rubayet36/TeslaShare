@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PASSENGER
+  DRIVER
+  ADMIN
+}
+
+enum VehicleStatus {
+  OFFLINE
+  ONLINE
+  BUSY
+}
+
+enum RideStatus {
+  REQUESTED
+  MATCHED
+  DRIVER_ARRIVED
+  STARTED
+  COMPLETED
+  CANCELLED
+}
+
+enum PoolStatus {
+  OPEN
+  FULL
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum TransactionType {
+  TOPUP
+  RIDE_PAYMENT
+  DRIVER_EARNING
+  REFUND
+}
+
+model User {
+  id             String              @id @default(uuid())
+  email          String?             @unique
+  phone          String              @unique
+  name           String
+  role           Role                @default(PASSENGER)
+  walletPoysha   Int                 @default(100000) // Default 1000 BDT in Poysha
+  vehicle        Vehicle?
+  rideRequests   RideRequest[]
+  driverPools    Pool[]
+  transactions   WalletTransaction[]
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@map("users")
+}
+
+model Vehicle {
+  id           String        @id @default(uuid())
+  name         String        // e.g. "Bullet"
+  model        String        // e.g. "Dhaka 3-Wheeler Electric Tesla"
+  licensePlate String        @unique
+  capacity     Int           @default(3) // Bullet has 3 seats
+  status       VehicleStatus @default(ONLINE)
+  currentZone  String        @default("Banani")
+  driverId     String        @unique
+  driver       User          @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  pools        Pool[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("vehicles")
+}
+
+model Pool {
+  id             String        @id @default(uuid())
+  driverId       String
+  driver         User          @relation(fields: [driverId], references: [id])
+  vehicleId      String
+  vehicle        Vehicle       @relation(fields: [vehicleId], references: [id])
+  status         PoolStatus    @default(OPEN)
+  totalSeats     Int           @default(3)
+  availableSeats Int           @default(3)
+  pickupZone     String        @default("Banani")
+  currentZone    String        @default("Banani")
+  members        PoolMember[]
+  rideRequests   RideRequest[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@map("pools")
+}
+
+model RideRequest {
+  id                  String      @id @default(uuid())
+  passengerId         String
+  passenger           User        @relation(fields: [passengerId], references: [id])
+  pickupZone          String
+  destinationZone     String
+  seatsRequested      Int         @default(1)
+  estimatedFarePoysha Int
+  finalFarePoysha     Int?
+  poolDiscountPoysha  Int         @default(0)
+  status              RideStatus  @default(REQUESTED)
+  poolId              String?
+  pool                Pool?       @relation(fields: [poolId], references: [id], onDelete: SetNull)
+  poolMember          PoolMember?
+  cancellationReason  String?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  @@map("ride_requests")
+}
+
+model PoolMember {
+  id                   String      @id @default(uuid())
+  poolId               String
+  pool                 Pool        @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  rideRequestId        String      @unique
+  rideRequest          RideRequest @relation(fields: [rideRequestId], references: [id], onDelete: Cascade)
+  seats                Int         @default(1)
+  individualFarePoysha Int
+  joinedAt             DateTime    @default(now())
+
+  @@map("pool_members")
+}
+
+model WalletTransaction {
+  id           String          @id @default(uuid())
+  userId       String
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amountPoysha Int
+  type         TransactionType
+  description  String
+  rideRequestId String?
+  createdAt    DateTime        @default(now())
+
+  @@map("wallet_transactions")
+}
