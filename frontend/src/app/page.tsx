@@ -1,69 +1,109 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import React from 'react';
+import { useCast } from '../context/CastContext';
+import { WalletCard } from '../components/WalletCard';
+import { RideHistoryCard } from '../components/RideHistoryCard';
+import { MapPin, Users, Zap, Shield, Sparkles, AlertCircle } from 'lucide-react';
+
+export default function PassengerPage() {
+  const { currentUser } = useCast();
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <div className="space-y-6">
+      {/* Rush-Hour Story Header Banner */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-emerald-950/40 to-slate-900 border border-slate-800 p-6 sm:p-8 shadow-2xl">
+        <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative z-10 max-w-3xl">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold mb-3">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>8:41 AM • Banani Road 11 Rush Hour</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            Welcome, {currentUser.name}! Ready to split a Tesla?
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mt-2 text-sm text-slate-300 leading-relaxed">
+            Jashim is ready at Banani with his 3-seat electric &ldquo;Tesla&rdquo;{' '}
+            <strong className="text-emerald-400">Bullet</strong>. Share seats with fellow Dhaka commuters,
+            cut your fare by 30%, and bypass gridlock fairly.
           </p>
+          <div className="mt-4 flex flex-wrap gap-4 text-xs text-slate-400">
+            <div className="flex items-center space-x-1.5">
+              <Zap className="w-4 h-4 text-emerald-400" />
+              <span>100% Battery-Powered 3-Wheeler</span>
+            </div>
+            <div className="flex items-center space-x-1.5">
+              <Users className="w-4 h-4 text-teal-400" />
+              <span>Max 3 Passengers • Never Overbooked</span>
+            </div>
+            <div className="flex items-center space-x-1.5">
+              <Shield className="w-4 h-4 text-blue-400" />
+              <span>TeslaPay Cashless Protection</span>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </div>
+
+      {/* Grid: Wallet, Profile & Ride History */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column: Wallet & Quick Profile */}
+        <div className="space-y-6 lg:col-span-1">
+          <WalletCard />
+
+          {/* Passenger Info Card */}
+          <div className="bg-slate-900/80 rounded-2xl p-5 border border-slate-800 text-white backdrop-blur-sm">
+            <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+              Active Commuter Profile
+            </h4>
+            <div className="space-y-2.5 text-xs">
+              <div className="flex justify-between py-1 border-b border-slate-800/80">
+                <span className="text-slate-400">Name</span>
+                <span className="font-semibold text-slate-200">{currentUser.name}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-slate-800/80">
+                <span className="text-slate-400">Phone</span>
+                <span className="font-mono text-slate-200">{currentUser.phone}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-slate-800/80">
+                <span className="text-slate-400">Frequent Hub</span>
+                <span className="font-medium text-emerald-400 flex items-center space-x-1">
+                  <MapPin className="w-3 h-3" />
+                  <span>Banani Road 11</span>
+                </span>
+              </div>
+              <div className="flex justify-between py-1">
+                <span className="text-slate-400">Target Role</span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300">
+                  {currentUser.role}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
-      </main>
+
+        {/* Right Column: Ride History & Map Area */}
+        <div className="space-y-6 lg:col-span-2">
+          {/* Booking & Map Preview Banner */}
+          <div className="bg-slate-900/60 rounded-2xl p-6 border border-slate-800 text-center flex flex-col items-center justify-center relative overflow-hidden">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-3 shadow-inner">
+              <MapPin className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-lg text-white mb-1">
+              Interactive Dhaka Route Visualizer & Booking
+            </h3>
+            <p className="text-xs text-slate-400 max-w-md mb-4">
+              Select your pickup and destination on the Leaflet map to preview real-time 30% pool savings,
+              travel distance, and corridor overlap.
+            </p>
+            <div className="inline-flex items-center space-x-2 text-xs text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20">
+              <AlertCircle className="w-3.5 h-3.5" />
+              <span>Feature 4.2 Leaflet Route Map loading next</span>
+            </div>
+          </div>
+
+          <RideHistoryCard />
+        </div>
+      </div>
     </div>
   );
 }
