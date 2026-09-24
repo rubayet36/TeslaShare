@@ -30,11 +30,11 @@ services:
         fromService:
           type: web
           name: dhaka-tesla-backend
-          property: url
+          property: host
 
 databases:
   # 3. PostgreSQL Database Instance
   - name: dhaka-tesla-db
     databaseName: dhaka_tesla_pool
-    user: postgres
+    user: dhaka_tesla_user
     plan: free
