@@ -250,6 +250,12 @@ export async function cancelRideRequest(rideId: string, userId: string, reason?:
   return await res.json();
 }
 
+export async function fetchRideById(rideId: string): Promise<RideRecord> {
+  const res = await fetch(`${API_BASE}/rides/${rideId}`, { cache: 'no-store' });
+  if (!res.ok) throw new Error('Ride not found');
+  return await res.json();
+}
+
 export function poyshaToBdt(poysha: number): number {
   return Math.round((poysha / 100) * 100) / 100;
 }
@@ -258,5 +264,6 @@ export function formatBdt(poysha: number): string {
   const bdt = poyshaToBdt(poysha);
   return `৳ ${bdt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
+
 
 
