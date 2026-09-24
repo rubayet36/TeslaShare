@@ -25,6 +25,95 @@ export interface User {
   }>;
 }
 
+export const TOKEN_STORAGE_KEY = 'dhaka_tesla_pool_jwt_token';
+
+export function getStoredToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(TOKEN_STORAGE_KEY);
+}
+
+export function setStoredToken(token: string) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  }
+}
+
+export function clearStoredToken() {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+  }
+}
+
+export async function loginApi(identifier: string, password: string): Promise<{ accessToken: string; user: User }> {
+  const res = await fetch(`${API_BASE}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ identifier, password }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Login failed. Check your phone/email and password.');
+  }
+
+  const data = await res.json();
+  if (data.accessToken) {
+    setStoredToken(data.accessToken);
+  }
+  return data;
+}
+
+export async function registerApi(data: {
+  name: string;
+  phone: string;
+  email?: string;
+  password: string;
+  role?: 'PASSENGER' | 'DRIVER';
+  vehicleName?: string;
+  vehicleModel?: string;
+  licensePlate?: string;
+}): Promise<{ accessToken: string; user: User }> {
+  const res = await fetch(`${API_BASE}/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Registration failed.');
+  }
+
+  const resData = await res.json();
+  if (resData.accessToken) {
+    setStoredToken(resData.accessToken);
+  }
+  return resData;
+}
+
+export async function fetchMeApi(token?: string): Promise<User | null> {
+  const authToken = token || getStoredToken();
+  if (!authToken) return null;
+
+  try {
+    const res = await fetch(`${API_BASE}/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+      cache: 'no-store',
+    });
+
+    if (!res.ok) {
+      clearStoredToken();
+      return null;
+    }
+
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
 export interface RideRecord {
   id: string;
   passengerId: string;

@@ -1,4 +1,5 @@
 import { PrismaClient, Role, VehicleStatus, PoolStatus, TransactionType } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -15,12 +16,15 @@ async function main() {
 
   console.log('🧹 Cleaned existing records.');
 
+  const defaultPasswordHash = await bcrypt.hash('password123', 10);
+
   // 1. Seed Jashim (The Legendary Driver of "Bullet")
   const jashim = await prisma.user.create({
     data: {
       name: 'Jashim',
       phone: '+8801711000001',
       email: 'jashim@tesla-pool.dhaka',
+      passwordHash: defaultPasswordHash,
       role: Role.DRIVER,
       walletPoysha: 50000, // 500 BDT
       transactions: {
@@ -54,6 +58,7 @@ async function main() {
       name: 'Nusrat',
       phone: '+8801811000002',
       email: 'nusrat@gmail.com',
+      passwordHash: defaultPasswordHash,
       role: Role.PASSENGER,
       walletPoysha: 150000, // 1500 BDT
       transactions: {
@@ -74,6 +79,7 @@ async function main() {
       name: 'Rafiq',
       phone: '+8801911000003',
       email: 'rafiq@gmail.com',
+      passwordHash: defaultPasswordHash,
       role: Role.PASSENGER,
       walletPoysha: 120000, // 1200 BDT
       transactions: {
@@ -94,6 +100,7 @@ async function main() {
       name: 'Shirin',
       phone: '+8801611000004',
       email: 'shirin@gmail.com',
+      passwordHash: defaultPasswordHash,
       role: Role.PASSENGER,
       walletPoysha: 100000, // 1000 BDT
       transactions: {

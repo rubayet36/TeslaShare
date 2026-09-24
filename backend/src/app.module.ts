@@ -8,11 +8,13 @@ import { FareModule } from './fare/fare.module';
 import { PoolsModule } from './pools/pools.module';
 import { RidesModule } from './rides/rides.module';
 import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
+    AuthModule,
     GeographyModule,
     FareModule,
     PoolsModule,
