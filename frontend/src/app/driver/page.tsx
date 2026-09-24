@@ -34,31 +34,31 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { AuthModal } from '../../components/AuthModal';
+import { AuthStandaloneView } from '../../components/AuthStandaloneView';
 
 export default function DriverDashboardPage() {
   const { cast, refreshUser, currentUser, quickLogin, isAuthenticated } = useCast();
 
-  // Find Jashim from story cast as fallback demo driver
-  const jashim = cast.find((u) => u.name === 'Jashim') || {
-    id: 'jashim-id',
-    name: 'Jashim',
-    email: 'jashim@tesla-pool.dhaka',
-    phone: '+8801711000001',
-    role: 'DRIVER' as const,
-    walletPoysha: 50000,
-    vehicle: {
-      id: 'bullet-id',
-      name: 'Bullet',
-      model: "Dhaka Electric 3-Wheeler 'Tesla' Bullet",
-      capacity: 3,
-      licensePlate: 'DHAKA-METRO-HA-11-2026',
-      status: 'ONLINE',
-      currentZone: 'Banani',
-    },
-  };
-
-  // Dynamically resolve active driver to the currently logged in driver, or fallback to Jashim
-  const activeDriver: User = (currentUser && currentUser.role === 'DRIVER') ? currentUser : jashim;
+  // Active driver is the currently authenticated driver user
+  const activeDriver: User = (currentUser && currentUser.role === 'DRIVER')
+    ? currentUser
+    : {
+        id: 'driver-id',
+        name: 'Tesla Driver',
+        email: 'driver@dhakatesla.com',
+        phone: '+8801700000000',
+        role: 'DRIVER' as const,
+        walletPoysha: 0,
+        vehicle: {
+          id: 'vehicle-id',
+          name: 'Tesla EV',
+          model: 'Dhaka Electric 3-Wheeler',
+          capacity: 3,
+          licensePlate: 'DHAKA-METRO-HA-11-2026',
+          status: 'ONLINE',
+          currentZone: 'Banani',
+        },
+      };
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'login' | 'register'>('login');
@@ -132,18 +132,19 @@ export default function DriverDashboardPage() {
     setConcurrencyResult(null);
     setActionError(null);
 
-    // Pick Shirin and a demo user to fight for the last seat
-    const shirin = cast.find((u) => u.name === 'Shirin') || cast[3];
-    const candidate2 = cast.find((u) => u.name === 'Rafiq') || cast[1];
+    // Dynamically pick two registered passenger candidates to simulate competing for the last seat
+    const passengerCandidates = cast.filter((u) => u.role === 'PASSENGER');
+    const candidate1 = passengerCandidates[0];
+    const candidate2 = passengerCandidates[1] || passengerCandidates[0];
 
-    if (!shirin || !candidate2 || !activePool) {
-      setActionError('Requires 2 passenger candidates and active pool to simulate.');
+    if (!candidate1 || !candidate2 || !activePool) {
+      setActionError('Requires at least 1 registered passenger and an active pool to simulate.');
       setConcurrencyRunning(false);
       return;
     }
 
     try {
-      const result = await simulateConcurrentLastSeatApi(activePool.id, shirin.id, candidate2.id);
+      const result = await simulateConcurrentLastSeatApi(activePool.id, candidate1.id, candidate2.id);
       setConcurrencyResult(result);
       await loadData();
     } catch (err: any) {
@@ -167,41 +168,60 @@ export default function DriverDashboardPage() {
   const occupiedSeats = poolMembers.reduce((sum: number, m: any) => sum + (m.seats || 1), 0);
   const availableSeats = Math.max(0, totalCapacity - occupiedSeats);
 
-  return (
-    <div className="space-y-6">
-      {/* Driver Registration & Sign In Notice if not currently logged in as a driver */}
-      {(!isAuthenticated || currentUser?.role !== 'DRIVER') && (
-        <div className="p-5 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-200 flex flex-wrap items-center justify-between gap-4 shadow-xl">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-lg">
-              🚗⚡
-            </div>
-            <div>
-              <h4 className="font-extrabold text-white text-sm">
-                Driver Portal: Add Your Own Tesla & Driver Profile
-              </h4>
-              <p className="text-xs text-amber-300/80">
-                You can create your own Driver account with custom vehicle details, or sign in to accept pools.
-              </p>
-            </div>
+  // IF NOT AUTHENTICATED: RENDER SIGN IN / SIGN UP PAGE ONLY
+  if (!isAuthenticated || !currentUser) {
+    return (
+      <div className="space-y-4">
+        <div className="text-center pt-2">
+          <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-300 border border-amber-500/20">
+            🚗 Driver & Tesla Pilot Portal
+          </span>
+        </div>
+        <AuthStandaloneView initialTab="login" initialRole="DRIVER" />
+      </div>
+    );
+  }
+
+  // IF LOGGED IN AS PASSENGER: PROMPT TO SWITCH OR SIGN IN AS DRIVER
+  if (currentUser.role !== 'DRIVER') {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-7 text-center space-y-4 text-white shadow-2xl">
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mx-auto">
+            <Car className="w-6 h-6" />
           </div>
-          <div className="flex items-center space-x-2">
+          <h2 className="text-xl font-bold">Driver Portal Restricted</h2>
+          <p className="text-xs text-slate-300 leading-relaxed">
+            You are currently signed in as Passenger <strong>{currentUser.name}</strong>. To access the Driver Console, please sign in with a Driver account or create a new Driver account.
+          </p>
+          <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-center">
+            <Link
+              href="/"
+              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold transition text-white"
+            >
+              Passenger Booking
+            </Link>
             <button
               onClick={() => openDriverAuth('register')}
-              className="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-extrabold text-xs hover:bg-amber-400 transition cursor-pointer shadow-md shadow-amber-500/20"
+              className="px-4 py-2.5 rounded-xl bg-amber-500 text-slate-950 text-xs font-bold hover:bg-amber-400 transition cursor-pointer"
             >
-              + Create Driver Account
-            </button>
-            <button
-              onClick={() => openDriverAuth('login')}
-              className="px-4 py-2 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 font-bold text-xs hover:bg-slate-700 transition cursor-pointer"
-            >
-              Driver Sign In
+              + Register as Driver
             </button>
           </div>
         </div>
-      )}
 
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          defaultTab={authModalTab}
+          defaultRole={authModalRole}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
       {/* Driver Header Banner */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-amber-950/40 to-slate-900 border border-slate-800 p-6 sm:p-8 shadow-2xl">
         <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -212,32 +232,21 @@ export default function DriverDashboardPage() {
               <span>Driver Console • {activeDriver.vehicle?.currentZone || 'Banani'} Hub</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center space-x-3">
-              <span>{activeDriver.name} & {activeDriver.vehicle?.name || 'Tesla Bullet'} Dashboard</span>
+              <span>{activeDriver.name} & {activeDriver.vehicle?.name || 'Tesla EV'} Dashboard</span>
             </h1>
             <p className="mt-1.5 text-xs sm:text-sm text-slate-300 max-w-xl">
-              Pilot your 3-seat electric Tesla <strong className="text-amber-400">{activeDriver.vehicle?.name || 'Bullet'}</strong> ({activeDriver.vehicle?.licensePlate || 'DHAKA-METRO'}), monitor live seat occupancy, and accept passenger pools.
+              Pilot your 3-seat electric Tesla <strong className="text-amber-400">{activeDriver.vehicle?.name || 'Tesla EV'}</strong> ({activeDriver.vehicle?.licensePlate || 'DHAKA-METRO'}), monitor live seat occupancy, and accept passenger pools.
             </p>
           </div>
 
           <div className="flex flex-col items-end space-y-2">
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => quickLogin(jashim)}
-                className="text-xs px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 transition flex items-center space-x-1 font-semibold cursor-pointer"
-                title="1-Click Demo Login as Jashim"
-              >
-                <UserCheck className="w-3.5 h-3.5" />
-                <span>Demo Driver (Jashim)</span>
-              </button>
-
-              <Link
-                href="/"
-                className="text-xs text-slate-400 hover:text-white flex items-center space-x-1 transition"
-              >
-                <span>Passenger View</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
+            <Link
+              href="/"
+              className="text-xs text-slate-400 hover:text-white flex items-center space-x-1.5 transition px-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-700/60"
+            >
+              <span>Passenger View</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
 
             {/* Online / Offline Status Toggle */}
             <button
@@ -419,7 +428,7 @@ export default function DriverDashboardPage() {
                 <Wallet className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-base text-white">Jashim&apos;s Earnings</h3>
+                <h3 className="font-bold text-base text-white">{activeDriver.name}&apos;s Earnings</h3>
                 <p className="text-xs text-slate-400">TeslaPay Driver Wallet Credit</p>
               </div>
             </div>
@@ -430,11 +439,11 @@ export default function DriverDashboardPage() {
                   Total Wallet Balance
                 </span>
                 <div className="text-2xl font-extrabold text-emerald-400 mt-0.5">
-                  {formatBdt(jashim.walletPoysha)}
+                  {formatBdt(activeDriver.walletPoysha)}
                 </div>
               </div>
               <div className="text-right font-mono text-xs text-slate-400">
-                {jashim.walletPoysha.toLocaleString()} Poysha
+                {activeDriver.walletPoysha.toLocaleString()} Poysha
               </div>
             </div>
           </div>
@@ -615,9 +624,9 @@ export default function DriverDashboardPage() {
               ) : (
                 <div className="text-center py-12 bg-slate-950/40 rounded-2xl border border-slate-800 text-slate-400 text-xs">
                   <Car className="w-10 h-10 mx-auto mb-2 text-slate-600" />
-                  <p className="font-semibold text-slate-300">No active passengers assigned to Bullet right now.</p>
+                  <p className="font-semibold text-slate-300">No active passengers assigned to vehicle right now.</p>
                   <p className="text-[11px] text-slate-500 mt-1 max-w-sm mx-auto">
-                    Switch to passenger view as Nusrat or Rafiq to request a ride from Banani!
+                    Incoming ride requests will appear above in real-time as passengers book trips!
                   </p>
                 </div>
               )}

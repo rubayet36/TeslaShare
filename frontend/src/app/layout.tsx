@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'Dhaka Tesla Pool | Share a seat. Split the fare.',
   description:
-    'Dhaka Tesla Pool MVP: Ride-pooling and fare splitting for Dhaka rush-hour traffic featuring Jashim, Bullet, Nusrat, Rafiq, and Shirin.',
+    'Dhaka Tesla Pool MVP: Ride-pooling and fare splitting for Dhaka rush-hour traffic in zero-emission electric vehicles.',
 };
 
 export default function RootLayout({

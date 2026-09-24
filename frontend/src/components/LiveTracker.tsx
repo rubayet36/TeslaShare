@@ -86,9 +86,9 @@ export function LiveTracker() {
   }
 
   const steps: Array<{ status: RideRecord['status']; label: string; desc: string }> = [
-    { status: 'REQUESTED', label: 'Requested', desc: 'Searching for Tesla Bullet' },
-    { status: 'MATCHED', label: 'Matched', desc: 'Jashim accepted pool' },
-    { status: 'DRIVER_ARRIVED', label: 'Driver Arrived', desc: 'Bullet at Banani Road 11' },
+    { status: 'REQUESTED', label: 'Requested', desc: 'Searching for available Tesla' },
+    { status: 'MATCHED', label: 'Matched', desc: 'Driver accepted pool' },
+    { status: 'DRIVER_ARRIVED', label: 'Driver Arrived', desc: 'Driver at pickup location' },
     { status: 'STARTED', label: 'In Trip', desc: 'En route to destination' },
     { status: 'COMPLETED', label: 'Completed', desc: 'TeslaPay fare settled' },
   ];
@@ -247,7 +247,7 @@ export function LiveTracker() {
         </div>
       )}
 
-      {/* Matched Driver & Vehicle Details (Jashim & Bullet) */}
+      {/* Matched Driver & Vehicle Details */}
       {ride.pool && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
           {/* Driver Card */}
@@ -260,16 +260,16 @@ export function LiveTracker() {
                 Assigned Driver
               </div>
               <div className="font-extrabold text-white text-sm">
-                {ride.pool.driver?.name || 'Jashim'}
+                {ride.pool.driver?.name || 'Tesla Driver'}
               </div>
               <div className="text-xs text-slate-400 flex items-center space-x-1 mt-0.5">
                 <Phone className="w-3 h-3 text-slate-500" />
-                <span>{ride.pool.driver?.phone || '+8801711000001'}</span>
+                <span>{ride.pool.driver?.phone || '+8801700000000'}</span>
               </div>
             </div>
           </div>
 
-          {/* Vehicle Bullet Card */}
+          {/* Vehicle Card */}
           <div className="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 flex items-center space-x-3.5">
             <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
               <Zap className="w-6 h-6 fill-current" />
@@ -279,7 +279,7 @@ export function LiveTracker() {
                 Electric 3-Wheeler
               </div>
               <div className="font-extrabold text-white text-sm">
-                {ride.pool.vehicle?.name || 'Bullet'}
+                {ride.pool.vehicle?.name || 'Tesla EV'}
               </div>
               <div className="text-xs text-slate-400 mt-0.5">
                 Capacity: <strong className="text-slate-200">3 Seats</strong> •{' '}

@@ -13,7 +13,7 @@ export const DHAKA_MAP_ZONES: MapZone[] = [
     name: 'Banani',
     lat: 23.7937,
     lng: 90.4066,
-    description: 'Banani Road 11 Hub (Jashim & Bullet Base)',
+    description: 'Banani Road 11 Hub',
     isHub: true,
   },
   {
@@ -21,7 +21,7 @@ export const DHAKA_MAP_ZONES: MapZone[] = [
     name: 'Gulshan 1',
     lat: 23.7785,
     lng: 90.4182,
-    description: 'Gulshan 1 Circle (Rafiq Drop-off)',
+    description: 'Gulshan 1 Circle',
   },
   {
     id: 'gulshan_2',
@@ -35,14 +35,14 @@ export const DHAKA_MAP_ZONES: MapZone[] = [
     name: 'Mohakhali',
     lat: 23.7776,
     lng: 90.4005,
-    description: 'Mohakhali Wireless Gate (Nusrat Drop-off)',
+    description: 'Mohakhali Wireless Gate',
   },
   {
     id: 'farmgate',
     name: 'Farmgate',
     lat: 23.7570,
     lng: 90.3888,
-    description: 'Farmgate Ananda Cinema Hub',
+    description: 'Farmgate Junction',
   },
   {
     id: 'dhanmondi',
@@ -56,7 +56,7 @@ export const DHAKA_MAP_ZONES: MapZone[] = [
     name: 'Uttara',
     lat: 23.8759,
     lng: 90.3795,
-    description: 'Uttara House Building Hub',
+    description: 'Uttara Sector 3 Station',
   },
   {
     id: 'mirpur_10',
@@ -70,6 +70,6 @@ export const DHAKA_MAP_ZONES: MapZone[] = [
     name: 'Bashundhara',
     lat: 23.8191,
     lng: 90.4326,
-    description: 'Bashundhara Main Gate / Jamuna Future Park',
+    description: 'Bashundhara Main Gate',
   },
 ];

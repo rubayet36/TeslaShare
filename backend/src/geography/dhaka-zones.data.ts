@@ -13,7 +13,7 @@ export const DHAKA_ZONES: DhakaZone[] = [
     name: 'Banani',
     lat: 23.7937,
     lng: 90.4066,
-    description: 'Banani Road 11 Hub & Chairmanbari (Jashim & Bullet Base)',
+    description: 'Banani Road 11 Hub & Chairmanbari',
     corridor: 'CENTRAL',
   },
   {
@@ -21,7 +21,7 @@ export const DHAKA_ZONES: DhakaZone[] = [
     name: 'Gulshan 1',
     lat: 23.7785,
     lng: 90.4182,
-    description: 'Gulshan 1 Circle & Police Plaza (Rafiq Destination)',
+    description: 'Gulshan 1 Circle & Police Plaza',
     corridor: 'CENTRAL',
   },
   {
@@ -37,7 +37,7 @@ export const DHAKA_ZONES: DhakaZone[] = [
     name: 'Mohakhali',
     lat: 23.7776,
     lng: 90.4005,
-    description: 'Mohakhali Wireless Gate & DOHS (Nusrat Destination)',
+    description: 'Mohakhali Wireless Gate & DOHS',
     corridor: 'CENTRAL',
   },
   {

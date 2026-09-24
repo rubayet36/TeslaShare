@@ -66,16 +66,21 @@ export function BookingPanel({
     const checkActiveTesla = async () => {
       try {
         const pools = await fetchPoolsApi();
-        const active = pools.find((p) => p.status === 'OPEN' || p.status === 'IN_PROGRESS');
+        const active = pools.find(
+          (p) =>
+            (p.status === 'OPEN' || p.status === 'IN_PROGRESS') &&
+            p.members &&
+            p.members.length > 0,
+        );
         if (active) {
-          const firstMember = active.members?.[0]?.rideRequest;
+          const firstMember = active.members[0]?.rideRequest;
           const originZone = firstMember?.pickupZone || active.pickupZone || 'Banani';
           const endZone = firstMember?.destinationZone || 'Mohakhali';
           setActiveTeslaRoute({
             pickup: originZone,
             destination: endZone,
-            vehicleName: active.vehicle?.name || 'Tesla Bullet',
-            driverName: active.driver?.name || 'Jashim',
+            vehicleName: active.vehicle?.name || 'Tesla EV',
+            driverName: active.driver?.name || 'Driver',
             availableSeats: active.availableSeats ?? 1,
             totalSeats: active.totalSeats ?? 3,
           });

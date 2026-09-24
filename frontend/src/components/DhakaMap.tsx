@@ -135,18 +135,25 @@ export default function DhakaMap({
     setStatusNotice(`🔁 Route swapped: ${prevDest} ➔ ${prevPickup}`);
   };
 
-  // Filter active pools with members or drivers
+  // Filter active pools that actually have active passenger bookings
   const activeTeslaCorridors = activePools
-    .filter((p) => p.status === 'OPEN' || p.status === 'IN_PROGRESS')
+    .filter(
+      (p) =>
+        (p.status === 'OPEN' || p.status === 'IN_PROGRESS') &&
+        p.members &&
+        p.members.length > 0,
+    )
     .map((pool) => {
-      const firstMember = pool.members?.[0]?.rideRequest;
-      const originZone = DHAKA_MAP_ZONES.find(
-        (z) => z.name.toLowerCase() === (firstMember?.pickupZone || pool.pickupZone || 'Banani').toLowerCase(),
-      ) || DHAKA_MAP_ZONES[0];
+      const firstMember = pool.members[0].rideRequest;
+      const originZone =
+        DHAKA_MAP_ZONES.find(
+          (z) => z.name.toLowerCase() === (firstMember?.pickupZone || '').toLowerCase(),
+        ) || DHAKA_MAP_ZONES[0];
 
-      const endZone = DHAKA_MAP_ZONES.find(
-        (z) => z.name.toLowerCase() === (firstMember?.destinationZone || 'Mohakhali').toLowerCase(),
-      ) || DHAKA_MAP_ZONES[3];
+      const endZone =
+        DHAKA_MAP_ZONES.find(
+          (z) => z.name.toLowerCase() === (firstMember?.destinationZone || '').toLowerCase(),
+        ) || DHAKA_MAP_ZONES[3];
 
       const midpointLat = (originZone.lat + endZone.lat) / 2;
       const midpointLng = (originZone.lng + endZone.lng) / 2;
@@ -248,7 +255,7 @@ export default function DhakaMap({
               <Marker
                 position={corridor.midpoint}
                 icon={createTeslaVehicleIcon(
-                  corridor.pool.vehicle?.name || 'Bullet',
+                  corridor.pool.vehicle?.name || 'Tesla',
                   corridor.pool.availableSeats ?? 1,
                 )}
               >
@@ -256,10 +263,10 @@ export default function DhakaMap({
                   <div className="text-xs p-1 min-w-[190px]">
                     <div className="font-extrabold text-slate-900 flex items-center space-x-1.5">
                       <span>🚗⚡</span>
-                      <span>{corridor.pool.vehicle?.name || 'Tesla Bullet'}</span>
+                      <span>{corridor.pool.vehicle?.name || 'Tesla Fleet'}</span>
                     </div>
                     <p className="text-slate-600 text-[11px] mt-0.5">
-                      Pilot: <strong>{corridor.pool.driver?.name || 'Jashim'}</strong>
+                      Pilot: <strong>{corridor.pool.driver?.name || 'Active Driver'}</strong>
                     </p>
                     <div className="mt-1 text-[11px] text-amber-700 font-semibold">
                       Route: {corridor.originZone.name} ➔ {corridor.endZone.name}

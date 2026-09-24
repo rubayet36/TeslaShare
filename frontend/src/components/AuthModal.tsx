@@ -158,7 +158,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultRole =
                   <input
                     type="text"
                     required
-                    placeholder="+8801811000002 or nusrat@gmail.com"
+                    placeholder="+8801700000000 or user@example.com"
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
@@ -186,34 +186,11 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultRole =
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 rounded-xl font-bold text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50"
+                className="w-full py-2.5 rounded-xl font-bold text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 cursor-pointer"
               >
                 {loading ? 'Authenticating...' : 'Sign In with JWT'}
               </button>
             </form>
-
-            {/* Quick Demo Cast Login */}
-            <div className="mt-6 pt-5 border-t border-slate-800">
-              <span className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2.5">
-                ⚡ 1-Click Story Cast Login (password123):
-              </span>
-              <div className="grid grid-cols-2 gap-2">
-                {cast.map((user) => (
-                  <button
-                    key={user.id}
-                    onClick={() => handleQuickCastLogin(user)}
-                    disabled={loading}
-                    className="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-left transition-all text-xs flex items-center justify-between"
-                  >
-                    <div>
-                      <div className="font-semibold text-slate-200">{user.name}</div>
-                      <div className="text-[10px] text-slate-400 capitalize">{user.role.toLowerCase()}</div>
-                    </div>
-                    <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
         ) : (
           /* TAB 2: REGISTER */
