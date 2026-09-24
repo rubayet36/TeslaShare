@@ -53,25 +53,25 @@ $$\text{Fare (Poysha)} = \left\lfloor \left( \text{BaseFare} + (\text{DistanceKm
 
 ```mermaid
 graph TD
-    subgraph Client Layer (Next.js 14 App Router)
-        UI[Rider & Driver UI Dashboard]
-        MapComp[Interactive Leaflet Dhaka Corridor Map]
-        WalletWidget[TeslaPay Wallet Component]
-        Tracker[Real-Time Trip Lifecycle Tracker]
+    subgraph Client ["Client Layer (Next.js 14 App Router)"]
+        UI["Rider & Driver UI Dashboard"]
+        MapComp["Interactive Leaflet Dhaka Corridor Map"]
+        WalletWidget["TeslaPay Wallet Component"]
+        Tracker["Real-Time Trip Lifecycle Tracker"]
     end
 
-    subgraph API Gateway / Backend Layer (NestJS 10)
-        AuthGuard[Role & Switcher Controller]
-        RidesCtrl[Rides Controller / Service]
-        PoolsCtrl[Pools Controller / Service]
-        FareEngine[Poysha Fare Calculation Engine]
-        GeoEngine[Dhaka Route Overlap Matcher]
+    subgraph API ["API Gateway / Backend Layer (NestJS 10)"]
+        AuthGuard["Role & Switcher Controller"]
+        RidesCtrl["Rides Controller / Service"]
+        PoolsCtrl["Pools Controller / Service"]
+        FareEngine["Poysha Fare Calculation Engine"]
+        GeoEngine["Dhaka Route Overlap Matcher"]
     end
 
-    subgraph Data & Concurrency Layer (Prisma ORM & PostgreSQL)
-        Prisma[Prisma Client ORM]
-        Postgres[(PostgreSQL Database)]
-        LockingEngine[Pessimistic SELECT FOR UPDATE Engine]
+    subgraph Data ["Data & Concurrency Layer (Prisma ORM & PostgreSQL)"]
+        Prisma["Prisma Client ORM"]
+        Postgres[("PostgreSQL Database")]
+        LockingEngine["Pessimistic SELECT FOR UPDATE Engine"]
     end
 
     UI -->|HTTP / REST| RidesCtrl
@@ -93,33 +93,33 @@ graph TD
 
 ```mermaid
 erDiagram
-    User ||--o{ RideRequest : "places"
-    User ||--o{ PoolMember : "joins pool via"
-    User ||--o{ WalletTransaction : "owns transactions"
-    User ||--o| Vehicle : "drives (if driver)"
+    User ||--o{ RideRequest : places
+    User ||--o{ PoolMember : joins
+    User ||--o{ WalletTransaction : owns
+    User ||--o| Vehicle : drives
 
-    Vehicle ||--o{ Pool : "assigned to"
+    Vehicle ||--o{ Pool : assigned_to
 
-    Pool ||--o{ PoolMember : "contains members"
-    Pool ||--o{ RideRequest : "fulfills requests"
+    Pool ||--o{ PoolMember : contains
+    Pool ||--o{ RideRequest : fulfills
 
-    RideRequest ||--o| PoolMember : "links to member"
-    RideRequest ||--o{ WalletTransaction : "generates charges"
+    RideRequest ||--o| PoolMember : links_to
+    RideRequest ||--o{ WalletTransaction : generates
 
     User {
         string id PK
         string name
         string email
-        enum role "PASSENGER | DRIVER"
-        int walletPoysha "Integer Poysha Balance"
+        string role
+        int walletPoysha
     }
 
     Vehicle {
         string id PK
         string driverId FK
-        string model "Tesla Model 3"
-        string licensePlate "Bullet"
-        int maxCapacity "3 Seats"
+        string model
+        string licensePlate
+        int maxCapacity
         boolean isOnline
     }
 
@@ -128,9 +128,9 @@ erDiagram
         string vehicleId FK
         string originZone
         string destinationZone
-        enum status "MATCHING | IN_PROGRESS | COMPLETED | CANCELLED"
-        int totalSeats "3 Seats"
-        int occupiedSeats "0 to 3"
+        string status
+        int totalSeats
+        int occupiedSeats
     }
 
     RideRequest {
@@ -139,7 +139,7 @@ erDiagram
         string poolId FK
         string pickupZone
         string dropoffZone
-        enum status "REQUESTED | MATCHED | DRIVER_ARRIVED | STARTED | COMPLETED | CANCELLED"
+        string status
         int estimatedFarePoysha
         int finalFarePoysha
     }
@@ -157,7 +157,7 @@ erDiagram
         string userId FK
         string rideRequestId FK
         int amountPoysha
-        enum type "DEPOSIT | FARE_PAYMENT | FARE_EARNING | REFUND"
+        string type
     }
 ```
 
