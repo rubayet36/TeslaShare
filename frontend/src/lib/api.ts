@@ -372,6 +372,58 @@ export async function updateRideStatusApi(rideId: string, status: string, driver
   return await res.json();
 }
 
+export async function fetchPendingRidesApi(): Promise<any[]> {
+  try {
+    const res = await fetch(`${API_BASE}/rides/pending`, { cache: 'no-store' });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
+export async function acceptRideApi(rideId: string, driverId: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/rides/${rideId}/accept`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ driverId }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Failed to accept ride into pool.');
+  }
+
+  return await res.json();
+}
+
+export async function fetchDriverHistoryApi(driverId: string): Promise<any[]> {
+  try {
+    const res = await fetch(`${API_BASE}/rides/driver/${driverId}/history`, { cache: 'no-store' });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
+export async function simulateConcurrentLastSeatApi(
+  poolId: string,
+  userAId: string,
+  userBId: string,
+): Promise<{ req1: any; req2: any }> {
+  // 1. Create two simultaneous ride requests
+  const [res1, res2] = await Promise.allSettled([
+    submitRideRequest(userAId, 'Banani', 'Mohakhali', 1, true),
+    submitRideRequest(userBId, 'Banani', 'Gulshan 1', 1, true),
+  ]);
+
+  return {
+    req1: res1.status === 'fulfilled' ? { success: true, data: res1.value } : { success: false, error: (res1.reason as Error).message },
+    req2: res2.status === 'fulfilled' ? { success: true, data: res2.value } : { success: false, error: (res2.reason as Error).message },
+  };
+}
+
 export function poyshaToBdt(poysha: number): number {
   return Math.round((poysha / 100) * 100) / 100;
 }

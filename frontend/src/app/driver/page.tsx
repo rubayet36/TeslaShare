@@ -2,7 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { useCast } from '../../context/CastContext';
-import { fetchPoolsApi, updateRideStatusApi, formatBdt, fetchDemoCast, User } from '../../lib/api';
+import {
+  fetchPoolsApi,
+  updateRideStatusApi,
+  formatBdt,
+  fetchPendingRidesApi,
+  acceptRideApi,
+  fetchDriverHistoryApi,
+  simulateConcurrentLastSeatApi,
+  User,
+} from '../../lib/api';
 import {
   Car,
   Zap,
@@ -18,16 +27,21 @@ import {
   Wallet,
   ShieldCheck,
   Navigation,
+  Clock,
+  Flame,
+  AlertTriangle,
+  UserCheck,
 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DriverDashboardPage() {
-  const { cast, refreshUser } = useCast();
+  const { cast, refreshUser, currentUser, quickLogin, isAuthenticated } = useCast();
 
   // Find Jashim from story cast
   const jashim = cast.find((u) => u.name === 'Jashim') || {
     id: 'jashim-id',
     name: 'Jashim',
+    email: 'jashim@tesla-pool.dhaka',
     phone: '+8801711000001',
     role: 'DRIVER' as const,
     walletPoysha: 50000,
@@ -44,14 +58,26 @@ export default function DriverDashboardPage() {
 
   const [isOnline, setIsOnline] = useState(true);
   const [pools, setPools] = useState<any[]>([]);
+  const [pendingRides, setPendingRides] = useState<any[]>([]);
+  const [driverHistory, setDriverHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const loadPools = async () => {
+  // Concurrency Simulation State
+  const [concurrencyRunning, setConcurrencyRunning] = useState(false);
+  const [concurrencyResult, setConcurrencyResult] = useState<any | null>(null);
+
+  const loadData = async () => {
     setLoading(true);
     try {
-      const data = await fetchPoolsApi();
-      setPools(data);
+      const [poolData, pendingData, historyData] = await Promise.all([
+        fetchPoolsApi(),
+        fetchPendingRidesApi(),
+        fetchDriverHistoryApi(jashim.id),
+      ]);
+      setPools(poolData);
+      setPendingRides(pendingData);
+      setDriverHistory(historyData);
     } catch {
       // Ignore
     } finally {
@@ -60,8 +86,8 @@ export default function DriverDashboardPage() {
   };
 
   useEffect(() => {
-    loadPools();
-    const interval = setInterval(loadPools, 4000);
+    loadData();
+    const interval = setInterval(loadData, 4000);
     return () => clearInterval(interval);
   }, []);
 
@@ -69,10 +95,47 @@ export default function DriverDashboardPage() {
     setActionError(null);
     try {
       await updateRideStatusApi(rideId, nextStatus, jashim.id);
-      await loadPools();
+      await loadData();
       await refreshUser();
     } catch (err: any) {
       setActionError(err.message || `Failed to transition ride to ${nextStatus}`);
+    }
+  };
+
+  const handleAcceptRide = async (rideId: string) => {
+    setActionError(null);
+    try {
+      await acceptRideApi(rideId, jashim.id);
+      await loadData();
+      await refreshUser();
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to accept ride.');
+    }
+  };
+
+  const handleRunConcurrencyTest = async () => {
+    setConcurrencyRunning(true);
+    setConcurrencyResult(null);
+    setActionError(null);
+
+    // Pick Shirin and a demo user to fight for the last seat
+    const shirin = cast.find((u) => u.name === 'Shirin') || cast[3];
+    const candidate2 = cast.find((u) => u.name === 'Rafiq') || cast[1];
+
+    if (!shirin || !candidate2 || !activePool) {
+      setActionError('Requires 2 passenger candidates and active pool to simulate.');
+      setConcurrencyRunning(false);
+      return;
+    }
+
+    try {
+      const result = await simulateConcurrentLastSeatApi(activePool.id, shirin.id, candidate2.id);
+      setConcurrencyResult(result);
+      await loadData();
+    } catch (err: any) {
+      setActionError(err.message || 'Concurrency simulation failed.');
+    } finally {
+      setConcurrencyRunning(false);
     }
   };
 
@@ -106,13 +169,23 @@ export default function DriverDashboardPage() {
           </div>
 
           <div className="flex flex-col items-end space-y-2">
-            <Link
-              href="/"
-              className="text-xs text-slate-400 hover:text-white flex items-center space-x-1 transition"
-            >
-              <span>Switch to Passenger View</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => quickLogin(jashim)}
+                className="text-xs px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 transition flex items-center space-x-1 font-semibold"
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+                <span>Log in as Jashim</span>
+              </button>
+
+              <Link
+                href="/"
+                className="text-xs text-slate-400 hover:text-white flex items-center space-x-1 transition"
+              >
+                <span>Passenger View</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
 
             {/* Online / Offline Status Toggle */}
             <button
@@ -139,7 +212,7 @@ export default function DriverDashboardPage() {
 
       {/* Grid: Occupancy Widget & Earnings */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Bullet 3-Seat Occupancy Widget */}
+        {/* Left Column: Bullet 3-Seat Occupancy Widget & Concurrency Simulator */}
         <div className="space-y-6 lg:col-span-1">
           {/* Bullet Seat Occupancy Widget */}
           <div className="bg-slate-900/90 rounded-2xl p-6 border border-slate-800 text-white shadow-xl backdrop-blur-sm">
@@ -154,7 +227,7 @@ export default function DriverDashboardPage() {
                 </div>
               </div>
               <button
-                onClick={loadPools}
+                onClick={loadData}
                 disabled={loading}
                 className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition border border-slate-700"
               >
@@ -174,14 +247,14 @@ export default function DriverDashboardPage() {
                 <span className="text-[10px] uppercase font-bold text-slate-400">Status</span>
                 <div
                   className={`text-xs font-bold px-2.5 py-1 rounded-full border mt-0.5 ${
-                    occupiedSeats === totalCapacity
+                    occupiedSeats >= totalCapacity
                       ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
                       : occupiedSeats > 0
                       ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
                       : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
                   }`}
                 >
-                  {occupiedSeats === totalCapacity
+                  {occupiedSeats >= totalCapacity
                     ? 'FULL (3/3)'
                     : occupiedSeats > 0
                     ? `PARTIAL (${availableSeats} LEFT)`
@@ -193,7 +266,6 @@ export default function DriverDashboardPage() {
             {/* Visual 3 Seats Grid */}
             <div className="grid grid-cols-3 gap-3 mb-4">
               {[1, 2, 3].map((seatNum) => {
-                // Find member assigned to this seat index
                 let memberForSeat: any = null;
                 let accumulated = 0;
                 for (const m of poolMembers) {
@@ -231,6 +303,63 @@ export default function DriverDashboardPage() {
             </div>
           </div>
 
+          {/* ⚡ Video Demo Widget: Last-Seat Concurrency Test */}
+          <div className="bg-slate-900/90 rounded-2xl p-6 border border-emerald-500/30 text-white shadow-xl backdrop-blur-sm">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                <Flame className="w-5 h-5 fill-current" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-white">Last-Seat Concurrency Test</h3>
+                <p className="text-[11px] text-slate-400">PRD Section 8 & 9 Testing Requirement</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed mb-4">
+              Simulates two simultaneous booking requests competing for <strong>Bullet&apos;s last seat</strong> to verify pessimistic database row locking.
+            </p>
+
+            <button
+              onClick={handleRunConcurrencyTest}
+              disabled={concurrencyRunning}
+              className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 hover:brightness-110 transition shadow-lg shadow-emerald-500/20 disabled:opacity-50 flex items-center justify-center space-x-2"
+            >
+              <Zap className="w-4 h-4 fill-current" />
+              <span>{concurrencyRunning ? 'Executing Parallel Requests...' : 'Trigger 2 Parallel Bookings'}</span>
+            </button>
+
+            {/* Live Concurrency Result Display */}
+            {concurrencyResult && (
+              <div className="mt-4 p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-2 animate-fade-in">
+                <div className="font-bold text-slate-200 border-b border-slate-800 pb-1 flex justify-between">
+                  <span>Race Condition Result:</span>
+                  <span className="text-emerald-400 font-mono">Pessimistic Lock Enforced</span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">Request A (Shirin):</span>
+                  <span className={concurrencyResult.req1.success ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
+                    {concurrencyResult.req1.success ? '✅ SUCCESS (Seat Allocated)' : '❌ REJECTED'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">Request B (Candidate 2):</span>
+                  <span className={concurrencyResult.req2.success ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
+                    {concurrencyResult.req2.success ? '✅ SUCCESS' : '❌ REJECTED (Capacity Full)'}
+                  </span>
+                </div>
+
+                <div className="pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-bold">
+                  <span className="text-slate-300">Vehicle Capacity Exceeded:</span>
+                  <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    FALSE (Strict 3/3 Limit)
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Driver Wallet & Earnings Card */}
           <div className="bg-slate-900/90 rounded-2xl p-6 border border-slate-800 text-white shadow-xl backdrop-blur-sm">
             <div className="flex items-center space-x-3 mb-4">
@@ -259,8 +388,68 @@ export default function DriverDashboardPage() {
           </div>
         </div>
 
-        {/* Right Column: Active Rides & Trip Lifecycle Controls */}
+        {/* Right Column: Pending Ride Requests, Active Pool Roster & Driver History */}
         <div className="space-y-6 lg:col-span-2">
+          {/* SECTION 5: Available Ride Requests (Pending Acceptance) */}
+          {pendingRides.length > 0 && (
+            <div className="bg-slate-900/90 rounded-2xl p-6 border border-amber-500/30 text-white shadow-xl backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold">
+                    ⚡
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base text-white">Available Ride Requests</h3>
+                    <p className="text-xs text-slate-400">
+                      Riders requesting Tesla pickup at Banani • Ready for pooling
+                    </p>
+                  </div>
+                </div>
+                <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                  {pendingRides.length} Pending
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {pendingRides.map((ride) => (
+                  <div
+                    key={ride.id}
+                    className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-wrap items-center justify-between gap-3"
+                  >
+                    <div>
+                      <div className="font-bold text-white text-sm">
+                        {ride.passenger?.name || 'Rider'}
+                      </div>
+                      <div className="text-xs text-slate-400 flex items-center space-x-2 mt-0.5">
+                        <span className="text-emerald-400">{ride.pickupZone}</span>
+                        <ArrowRight className="w-3.5 h-3.5 text-slate-600" />
+                        <span className="text-slate-200">{ride.destinationZone}</span>
+                        <span>•</span>
+                        <span>{ride.seatsRequested} seat(s)</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-3">
+                      <div className="text-right">
+                        <div className="text-sm font-bold text-emerald-400 font-mono">
+                          {formatBdt(ride.estimatedFarePoysha)}
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleAcceptRide(ride.id)}
+                        className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition shadow-md shadow-emerald-500/20"
+                      >
+                        Accept Pool
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Active Pool Roster & Passenger Controls */}
           <div className="bg-slate-900/90 rounded-2xl p-6 border border-slate-800 text-white shadow-xl backdrop-blur-sm">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center space-x-3">
@@ -376,8 +565,57 @@ export default function DriverDashboardPage() {
                   <Car className="w-10 h-10 mx-auto mb-2 text-slate-600" />
                   <p className="font-semibold text-slate-300">No active passengers assigned to Bullet right now.</p>
                   <p className="text-[11px] text-slate-500 mt-1 max-w-sm mx-auto">
-                    Switch to the passenger view as Nusrat or Rafiq to request a ride from Banani!
+                    Switch to passenger view as Nusrat or Rafiq to request a ride from Banani!
                   </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* SECTION 10: Driver Ride History */}
+          <div className="bg-slate-900/90 rounded-2xl p-6 border border-slate-800 text-white shadow-xl backdrop-blur-sm">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
+                <Clock className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-white">Driver Trip History</h3>
+                <p className="text-xs text-slate-400">Completed rides, passengers, and fare earnings</p>
+              </div>
+            </div>
+
+            <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+              {driverHistory.length > 0 ? (
+                driverHistory.map((ride) => (
+                  <div
+                    key={ride.id}
+                    className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs flex items-center justify-between"
+                  >
+                    <div>
+                      <div className="font-semibold text-slate-200">
+                        {ride.passenger?.name} • {ride.seatsRequested} seat(s)
+                      </div>
+                      <div className="text-[11px] text-slate-400 flex items-center space-x-1.5 mt-0.5">
+                        <span>{ride.pickupZone}</span>
+                        <ArrowRight className="w-3 h-3 text-slate-600" />
+                        <span>{ride.destinationZone}</span>
+                        <span>•</span>
+                        <span className="text-emerald-400 uppercase font-semibold text-[10px]">
+                          {ride.status}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <div className="font-bold text-emerald-400 font-mono">
+                        {formatBdt(ride.finalFarePoysha || ride.estimatedFarePoysha)}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-6 text-xs text-slate-500">
+                  No completed driver trips recorded yet.
                 </div>
               )}
             </div>

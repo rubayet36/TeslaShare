@@ -334,4 +334,89 @@ export class RidesService {
       orderBy: { createdAt: 'desc' },
     });
   }
+
+  /**
+   * Query unassigned / pending ride requests for driver dashboard
+   */
+  async getPendingRides() {
+    return this.prisma.rideRequest.findMany({
+      where: {
+        status: RideStatus.REQUESTED,
+        poolId: null,
+      },
+      include: {
+        passenger: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  /**
+   * Driver explicitly accepts a ride request into their active Tesla pool
+   */
+  async acceptRide(rideId: string, driverId: string) {
+    const driverVehicle = await this.prisma.vehicle.findUnique({
+      where: { driverId },
+    });
+
+    if (!driverVehicle) {
+      throw new NotFoundException(`No vehicle registered for driver '${driverId}'.`);
+    }
+
+    let activePool = await this.prisma.pool.findFirst({
+      where: {
+        driverId,
+        status: { in: [PoolStatus.OPEN, PoolStatus.IN_PROGRESS] },
+      },
+    });
+
+    if (!activePool) {
+      activePool = await this.prisma.pool.create({
+        data: {
+          driverId,
+          vehicleId: driverVehicle.id,
+          status: PoolStatus.OPEN,
+          totalSeats: driverVehicle.capacity || 3,
+          availableSeats: driverVehicle.capacity || 3,
+          pickupZone: driverVehicle.currentZone || 'Banani',
+          currentZone: driverVehicle.currentZone || 'Banani',
+        },
+      });
+    }
+
+    const ride = await this.prisma.rideRequest.findUnique({
+      where: { id: rideId },
+    });
+
+    if (!ride) {
+      throw new NotFoundException(`Ride request '${rideId}' not found.`);
+    }
+
+    // Atomically join pool
+    await this.poolsService.joinPoolAtomic({
+      poolId: activePool.id,
+      rideRequestId: ride.id,
+      seats: ride.seatsRequested,
+    });
+
+    return this.getRideById(ride.id);
+  }
+
+  /**
+   * Query driver ride history
+   */
+  async getDriverHistory(driverId: string) {
+    return this.prisma.rideRequest.findMany({
+      where: {
+        pool: { driverId },
+        status: { in: [RideStatus.COMPLETED, RideStatus.CANCELLED] },
+      },
+      include: {
+        passenger: true,
+        pool: true,
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 20,
+    });
+  }
 }

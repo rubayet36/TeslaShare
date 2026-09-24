@@ -36,6 +36,24 @@ export class RidesController {
     return this.ridesService.cancelRide(id, dto);
   }
 
+  @Get('pending')
+  getPendingRides() {
+    return this.ridesService.getPendingRides();
+  }
+
+  @Get('driver/:driverId/history')
+  getDriverHistory(@Param('driverId') driverId: string) {
+    return this.ridesService.getDriverHistory(driverId);
+  }
+
+  @Post(':id/accept')
+  acceptRide(
+    @Param('id') id: string,
+    @Body('driverId') driverId: string,
+  ) {
+    return this.ridesService.acceptRide(id, driverId);
+  }
+
   @Get(':id')
   getRideById(@Param('id') id: string) {
     return this.ridesService.getRideById(id);
