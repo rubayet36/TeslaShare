@@ -5,6 +5,7 @@ import { useCast } from '../context/CastContext';
 import { WalletCard } from '../components/WalletCard';
 import { RideHistoryCard } from '../components/RideHistoryCard';
 import { BookingPanel } from '../components/BookingPanel';
+import { LiveTracker } from '../components/LiveTracker';
 import DhakaMapDynamic from '../components/DhakaMapDynamic';
 import { MapPin, Users, Zap, Shield, Sparkles } from 'lucide-react';
 
@@ -87,8 +88,11 @@ export default function PassengerPage() {
           </div>
         </div>
 
-        {/* Right Column: Booking Panel, Leaflet Map & Ride History */}
+        {/* Right Column: Live Tracker, Booking Panel, Leaflet Map & Ride History */}
         <div className="space-y-6 lg:col-span-2">
+          {/* Real-time Ride Tracker Monitor */}
+          <LiveTracker />
+
           {/* Booking Panel with Real-time Fare Calculator */}
           <BookingPanel
             onRouteSelected={(pickup, dest) => {
