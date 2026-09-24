@@ -261,7 +261,7 @@ Dhaka Tesla Pool/
 │   │   ├── components/
 │   │   │   ├── AuthStandaloneView.tsx # Standalone Sign In / Sign Up portal
 │   │   │   └── DhakaMap.tsx         # Interactive Leaflet map with real road polyline
-│   │   └── lib/api.ts               # Axios API client with JWT interceptor
+│   │   └── lib/api.ts               # Axios API client
 │   └── Dockerfile                   # Frontend container
 ├── docker-compose.yml               # Multi-container orchestration (Postgres, API, Frontend)
 └── README.md                        # Project documentation

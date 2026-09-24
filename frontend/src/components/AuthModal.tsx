@@ -188,7 +188,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultRole =
                 disabled={loading}
                 className="w-full py-2.5 rounded-xl font-bold text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 cursor-pointer"
               >
-                {loading ? 'Authenticating...' : 'Sign In with JWT'}
+                {loading ? 'Authenticating...' : 'Sign In'}
               </button>
             </form>
           </div>

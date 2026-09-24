@@ -190,7 +190,7 @@ export function AuthStandaloneView({
                 <div className="w-4 h-4 rounded-full border-2 border-slate-950 border-t-transparent animate-spin" />
               ) : (
                 <>
-                  <span>Sign In with JWT</span>
+                  <span>Sign In</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
