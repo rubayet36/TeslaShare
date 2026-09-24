@@ -109,7 +109,7 @@ export function WalletCard() {
                       <div className="font-medium text-slate-200 truncate max-w-[140px]">
                         {tx.description}
                       </div>
-                      <div className="text-[10px] text-slate-400">
+                      <div className="text-[10px] text-slate-400" suppressHydrationWarning>
                         {new Date(tx.createdAt).toLocaleTimeString([], {
                           hour: '2-digit',
                           minute: '2-digit',

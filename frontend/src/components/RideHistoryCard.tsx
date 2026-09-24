@@ -74,7 +74,7 @@ export function RideHistoryCard() {
 
               <div className="flex items-center justify-between text-slate-400 text-[11px] pt-2 border-t border-slate-800/60">
                 <div className="flex items-center space-x-2">
-                  <span>{new Date(ride.createdAt).toLocaleDateString()}</span>
+                  <span suppressHydrationWarning>{new Date(ride.createdAt).toLocaleDateString()}</span>
                   <span>•</span>
                   <span>{ride.seatsRequested} Seat(s)</span>
                   {ride.poolDiscountPoysha > 0 && (
