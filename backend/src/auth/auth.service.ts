@@ -54,13 +54,13 @@ export class AuthService {
             },
           ],
         },
-        ...(userRole === Role.DRIVER && dto.vehicleName
+        ...(userRole === Role.DRIVER
           ? {
               vehicle: {
                 create: {
-                  name: dto.vehicleName,
+                  name: dto.vehicleName || 'Tesla Bullet',
                   model: dto.vehicleModel || 'Electric Tesla 3-Wheeler',
-                  licensePlate: dto.licensePlate || `DHAKA-${Date.now().toString().slice(-6)}`,
+                  licensePlate: dto.licensePlate || `DHAKA-METRO-${Date.now().toString().slice(-4)}`,
                   capacity: 3,
                   status: VehicleStatus.ONLINE,
                   currentZone: 'Banani',
@@ -73,6 +73,21 @@ export class AuthService {
         vehicle: true,
       },
     });
+
+    // Auto-create initial open pool for the registered driver
+    if (user.role === Role.DRIVER && user.vehicle) {
+      await this.prisma.pool.create({
+        data: {
+          driverId: user.id,
+          vehicleId: user.vehicle.id,
+          status: PoolStatus.OPEN,
+          totalSeats: user.vehicle.capacity || 3,
+          availableSeats: user.vehicle.capacity || 3,
+          pickupZone: user.vehicle.currentZone || 'Banani',
+          currentZone: user.vehicle.currentZone || 'Banani',
+        },
+      });
+    }
 
     const token = this.generateToken(user);
     const { passwordHash: _, ...userWithoutPassword } = user;

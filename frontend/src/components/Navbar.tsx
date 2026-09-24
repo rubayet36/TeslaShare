@@ -42,59 +42,44 @@ export function Navbar() {
               </div>
             </Link>
 
-            {/* Cast Quick-Switcher & Story Links */}
+            {/* Navigation Tabs */}
             <div className="flex items-center space-x-2 bg-slate-800/80 p-1.5 rounded-xl border border-slate-700/60">
-              <span className="text-xs font-medium text-slate-400 px-2 hidden lg:inline">
-                Story Cast:
-              </span>
-              {cast
-                .filter((c) => c.role === 'PASSENGER')
-                .map((user) => {
-                  const isActive = currentUser.id === user.id;
-                  return (
-                    <button
-                      key={user.id}
-                      onClick={() => quickLogin(user)}
-                      title={`Login as ${user.name} with JWT`}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5 ${
-                        isActive
-                          ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
-                          : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
-                      }`}
-                    >
-                      <UserCheck className="w-3.5 h-3.5" />
-                      <span>{user.name}</span>
-                    </button>
-                  );
-                })}
+              <Link
+                href="/"
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-700/60 transition-all flex items-center space-x-1.5"
+              >
+                <UserIcon className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Passenger Booking</span>
+              </Link>
 
-              {/* Jashim Driver Toggle */}
               <Link
                 href="/driver"
                 className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/30 hover:bg-amber-500/20 transition-all flex items-center space-x-1.5"
               >
                 <Car className="w-3.5 h-3.5 text-amber-400" />
-                <span>Jashim (Bullet)</span>
+                <span>Driver Console</span>
               </Link>
             </div>
 
             {/* Auth Controls & TeslaPay Wallet Pill */}
             <div className="flex items-center space-x-3">
-              {/* Wallet Pill */}
-              <div className="flex items-center space-x-2 bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-xl">
-                <Wallet className="w-4 h-4 text-emerald-400" />
-                <div className="text-right">
-                  <div className="text-xs font-bold text-emerald-400">
-                    {formatBdt(currentUser?.walletPoysha || 0)}
-                  </div>
-                  <div className="text-[10px] text-slate-400 leading-tight">
-                    {(currentUser?.walletPoysha || 0).toLocaleString()} Poysha
+              {/* Wallet Pill - only when logged in */}
+              {isAuthenticated && currentUser && (
+                <div className="flex items-center space-x-2 bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-xl">
+                  <Wallet className="w-4 h-4 text-emerald-400" />
+                  <div className="text-right">
+                    <div className="text-xs font-bold text-emerald-400">
+                      {formatBdt(currentUser.walletPoysha || 0)}
+                    </div>
+                    <div className="text-[10px] text-slate-400 leading-tight">
+                      {(currentUser.walletPoysha || 0).toLocaleString()} Poysha
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Real JWT Auth Login / Register / Logout */}
-              {isAuthenticated ? (
+              {isAuthenticated && currentUser ? (
                 <div className="flex items-center space-x-2 bg-slate-800/60 border border-slate-700/80 px-2.5 py-1.5 rounded-xl">
                   <div className="flex items-center space-x-1.5">
                     <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -106,7 +91,7 @@ export function Navbar() {
                   <button
                     onClick={logout}
                     title="Logout (Remove JWT Token)"
-                    className="p-1 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-700/50 transition-all ml-1"
+                    className="p-1 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-700/50 transition-all ml-1 cursor-pointer"
                   >
                     <LogOut className="w-3.5 h-3.5" />
                   </button>

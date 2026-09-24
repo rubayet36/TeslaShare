@@ -68,40 +68,39 @@ export class RidesService {
       },
     });
 
-    // 3. Auto-matching: Look for active pool in pickup zone (e.g. Banani)
-    let matchedPoolResult: any = null;
-    const activePools = await this.poolsService.getActivePools(dto.pickupZone);
+    // 3. Optional Auto-matching: Only run if explicitly requested, otherwise driver accepts manually
+    if (dto.autoMatch) {
+      const activePools = await this.poolsService.getActivePools(dto.pickupZone);
 
-    for (const pool of activePools) {
-      if (pool.availableSeats >= seatsRequested) {
-        // If pool already has passengers, check route overlap
-        let isRouteFeasible = true;
-        if (pool.members && pool.members.length > 0) {
-          const firstMemberRequest = pool.members[0].rideRequest;
-          const compatibility = this.geographyService.checkCompatibility(
-            {
-              pickup: firstMemberRequest.pickupZone,
-              destination: firstMemberRequest.destinationZone,
-            },
-            {
-              pickup: dto.pickupZone,
-              destination: dto.destinationZone,
-            },
-          );
-          isRouteFeasible = compatibility.isCompatible;
-        }
+      for (const pool of activePools) {
+        if (pool.availableSeats >= seatsRequested) {
+          let isRouteFeasible = true;
+          if (pool.members && pool.members.length > 0) {
+            const firstMemberRequest = pool.members[0].rideRequest;
+            const compatibility = this.geographyService.checkCompatibility(
+              {
+                pickup: firstMemberRequest.pickupZone,
+                destination: firstMemberRequest.destinationZone,
+              },
+              {
+                pickup: dto.pickupZone,
+                destination: dto.destinationZone,
+              },
+            );
+            isRouteFeasible = compatibility.isCompatible;
+          }
 
-        if (isRouteFeasible) {
-          try {
-            matchedPoolResult = await this.poolsService.joinPoolAtomic({
-              poolId: pool.id,
-              rideRequestId: rideRequest.id,
-              seats: seatsRequested,
-            });
-            break; // Successfully matched!
-          } catch {
-            // If lock contention or filled, continue to next pool
-            continue;
+          if (isRouteFeasible) {
+            try {
+              await this.poolsService.joinPoolAtomic({
+                poolId: pool.id,
+                rideRequestId: rideRequest.id,
+                seats: seatsRequested,
+              });
+              break;
+            } catch {
+              continue;
+            }
           }
         }
       }

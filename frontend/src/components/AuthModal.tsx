@@ -8,9 +8,10 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   defaultTab?: 'login' | 'register';
+  defaultRole?: 'PASSENGER' | 'DRIVER';
 }
 
-export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalProps) {
+export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultRole = 'PASSENGER' }: AuthModalProps) {
   const { login, register, quickLogin, cast } = useCast();
   const [tab, setTab] = useState<'login' | 'register'>(defaultTab);
 
@@ -23,13 +24,20 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
-  const [role, setRole] = useState<'PASSENGER' | 'DRIVER'>('PASSENGER');
+  const [role, setRole] = useState<'PASSENGER' | 'DRIVER'>(defaultRole);
   const [vehicleName, setVehicleName] = useState('Tesla Bullet');
   const [vehicleModel, setVehicleModel] = useState('Electric 3-Wheeler');
   const [licensePlate, setLicensePlate] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setTab(defaultTab);
+      if (defaultRole) setRole(defaultRole);
+    }
+  }, [isOpen, defaultTab, defaultRole]);
 
   if (!isOpen) return null;
 

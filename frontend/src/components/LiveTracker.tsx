@@ -65,7 +65,7 @@ export function LiveTracker() {
   };
 
   const handleCancel = async () => {
-    if (!ride) return;
+    if (!ride || !currentUser) return;
     setCancelling(true);
     setCancelError(null);
     try {
@@ -297,7 +297,7 @@ export function LiveTracker() {
         <div className="flex items-center space-x-2">
           <ShieldCheck className="w-4 h-4 text-emerald-400" />
           <span className="text-slate-300 font-medium">
-            Individual Fare for <strong>{currentUser.name}</strong> ({ride.seatsRequested} seat):
+            Individual Fare for <strong>{currentUser?.name || 'Rider'}</strong> ({ride.seatsRequested} seat):
           </span>
         </div>
         <div className="flex items-center space-x-3">

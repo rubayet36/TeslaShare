@@ -42,6 +42,18 @@ export function RideHistoryCard() {
     }
   };
 
+  if (!currentUser) {
+    return (
+      <div className="bg-slate-900/80 rounded-2xl p-6 border border-slate-800 text-white shadow-xl backdrop-blur-sm text-center py-8">
+        <Car className="w-8 h-8 mx-auto mb-2 text-slate-600" />
+        <h3 className="font-bold text-sm text-slate-300">Ride History</h3>
+        <p className="text-xs text-slate-500 mt-1">
+          Sign in or create an account to view your past Tesla ride receipts and pooling savings.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-slate-900/80 rounded-2xl p-6 border border-slate-800 text-white shadow-xl backdrop-blur-sm">
       <div className="flex items-center justify-between mb-4">

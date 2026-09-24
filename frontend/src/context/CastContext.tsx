@@ -6,7 +6,6 @@ import {
   RideRecord,
   fetchDemoCast,
   fetchUserRides,
-  FALLBACK_CAST,
   loginApi,
   registerApi,
   fetchMeApi,
@@ -16,8 +15,8 @@ import {
 
 interface CastContextType {
   cast: User[];
-  currentUser: User;
-  setCurrentUser: (user: User) => void;
+  currentUser: User | null;
+  setCurrentUser: (user: User | null) => void;
   token: string | null;
   isAuthenticated: boolean;
   login: (identifier: string, password: string) => Promise<User>;
@@ -34,8 +33,8 @@ interface CastContextType {
 const CastContext = createContext<CastContextType | undefined>(undefined);
 
 export function CastProvider({ children }: { children: React.ReactNode }) {
-  const [cast, setCast] = useState<User[]>(FALLBACK_CAST);
-  const [currentUser, setCurrentUser] = useState<User>(FALLBACK_CAST[0]); // Default Nusrat
+  const [cast, setCast] = useState<User[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [userRides, setUserRides] = useState<RideRecord[]>([]);
@@ -43,7 +42,7 @@ export function CastProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     async function loadData() {
-      // 1. Fetch available cast
+      // 1. Fetch available cast for optional quick switching / test references
       const users = await fetchDemoCast();
       if (users && users.length > 0) {
         setCast(users);
@@ -58,12 +57,14 @@ export function CastProvider({ children }: { children: React.ReactNode }) {
           setCurrentUser(me);
           setIsAuthenticated(true);
           return;
+        } else {
+          clearStoredToken();
         }
       }
 
-      // Fallback default
-      const initialUser = users.find((u) => u.name === 'Nusrat') || users[0] || FALLBACK_CAST[0];
-      setCurrentUser(initialUser);
+      // Zero default user: user logs in or registers themselves!
+      setCurrentUser(null);
+      setIsAuthenticated(false);
     }
     loadData();
   }, []);
@@ -81,8 +82,11 @@ export function CastProvider({ children }: { children: React.ReactNode }) {
         );
         setActiveRide(active || null);
       });
+    } else {
+      setUserRides([]);
+      setActiveRide(null);
     }
-  }, [currentUser]);
+  }, [currentUser?.id]);
 
   const login = async (identifier: string, password: string): Promise<User> => {
     const res = await loginApi(identifier, password);
@@ -104,21 +108,19 @@ export function CastProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     clearStoredToken();
     setToken(null);
+    setCurrentUser(null);
     setIsAuthenticated(false);
-    // Switch to first cast member as guest
-    if (cast.length > 0) {
-      setCurrentUser(cast[0]);
-    }
+    setUserRides([]);
+    setActiveRide(null);
   };
 
   const quickLogin = async (user: User) => {
     try {
-      // Story cast password seeded as 'password123'
       const identifier = user.email || user.phone;
       await login(identifier, 'password123');
     } catch {
-      // If API unavailable, fallback locally
       setCurrentUser(user);
+      setIsAuthenticated(true);
     }
   };
 
@@ -141,21 +143,25 @@ export function CastProvider({ children }: { children: React.ReactNode }) {
   };
 
   const topUpWallet = (amountBdt: number) => {
+    if (!currentUser) return;
     const poysha = amountBdt * 100;
-    setCurrentUser((prev) => ({
-      ...prev,
-      walletPoysha: prev.walletPoysha + poysha,
-      transactions: [
-        {
-          id: `sim-tx-${Date.now()}`,
-          amountPoysha: poysha,
-          type: 'TOPUP',
-          description: `TeslaPay Simulated Top-up (+৳${amountBdt})`,
-          createdAt: new Date().toISOString(),
-        },
-        ...(prev.transactions || []),
-      ],
-    }));
+    setCurrentUser((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        walletPoysha: prev.walletPoysha + poysha,
+        transactions: [
+          {
+            id: `sim-tx-${Date.now()}`,
+            amountPoysha: poysha,
+            type: 'TOPUP',
+            description: `TeslaPay Simulated Top-up (+৳${amountBdt})`,
+            createdAt: new Date().toISOString(),
+          },
+          ...(prev.transactions || []),
+        ],
+      };
+    });
   };
 
   return (

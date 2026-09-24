@@ -33,11 +33,12 @@ import {
   UserCheck,
 } from 'lucide-react';
 import Link from 'next/link';
+import { AuthModal } from '../../components/AuthModal';
 
 export default function DriverDashboardPage() {
   const { cast, refreshUser, currentUser, quickLogin, isAuthenticated } = useCast();
 
-  // Find Jashim from story cast
+  // Find Jashim from story cast as fallback demo driver
   const jashim = cast.find((u) => u.name === 'Jashim') || {
     id: 'jashim-id',
     name: 'Jashim',
@@ -54,6 +55,19 @@ export default function DriverDashboardPage() {
       status: 'ONLINE',
       currentZone: 'Banani',
     },
+  };
+
+  // Dynamically resolve active driver to the currently logged in driver, or fallback to Jashim
+  const activeDriver: User = (currentUser && currentUser.role === 'DRIVER') ? currentUser : jashim;
+
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState<'login' | 'register'>('login');
+  const [authModalRole, setAuthModalRole] = useState<'PASSENGER' | 'DRIVER'>('DRIVER');
+
+  const openDriverAuth = (tab: 'login' | 'register') => {
+    setAuthModalTab(tab);
+    setAuthModalRole('DRIVER');
+    setIsAuthModalOpen(true);
   };
 
   const [isOnline, setIsOnline] = useState(true);
@@ -73,7 +87,7 @@ export default function DriverDashboardPage() {
       const [poolData, pendingData, historyData] = await Promise.all([
         fetchPoolsApi(),
         fetchPendingRidesApi(),
-        fetchDriverHistoryApi(jashim.id),
+        fetchDriverHistoryApi(activeDriver.id),
       ]);
       setPools(poolData);
       setPendingRides(pendingData);
@@ -89,12 +103,12 @@ export default function DriverDashboardPage() {
     loadData();
     const interval = setInterval(loadData, 4000);
     return () => clearInterval(interval);
-  }, []);
+  }, [activeDriver.id]);
 
   const handleStatusChange = async (rideId: string, nextStatus: string) => {
     setActionError(null);
     try {
-      await updateRideStatusApi(rideId, nextStatus, jashim.id);
+      await updateRideStatusApi(rideId, nextStatus, activeDriver.id);
       await loadData();
       await refreshUser();
     } catch (err: any) {
@@ -105,7 +119,7 @@ export default function DriverDashboardPage() {
   const handleAcceptRide = async (rideId: string) => {
     setActionError(null);
     try {
-      await acceptRideApi(rideId, jashim.id);
+      await acceptRideApi(rideId, activeDriver.id);
       await loadData();
       await refreshUser();
     } catch (err: any) {
@@ -139,18 +153,55 @@ export default function DriverDashboardPage() {
     }
   };
 
-  // Extract active pool for Bullet
+  // Extract active pool for driver's vehicle
   const activePool = pools.find(
+    (p) =>
+      p.driverId === activeDriver.id &&
+      (p.status === 'OPEN' || p.status === 'FULL' || p.status === 'IN_PROGRESS'),
+  ) || pools.find(
     (p) => p.status === 'OPEN' || p.status === 'FULL' || p.status === 'IN_PROGRESS',
   ) || pools[0];
 
   const poolMembers = activePool?.members || [];
-  const totalCapacity = activePool?.totalSeats || jashim.vehicle?.capacity || 3;
+  const totalCapacity = activePool?.totalSeats || activeDriver.vehicle?.capacity || 3;
   const occupiedSeats = poolMembers.reduce((sum: number, m: any) => sum + (m.seats || 1), 0);
   const availableSeats = Math.max(0, totalCapacity - occupiedSeats);
 
   return (
     <div className="space-y-6">
+      {/* Driver Registration & Sign In Notice if not currently logged in as a driver */}
+      {(!isAuthenticated || currentUser?.role !== 'DRIVER') && (
+        <div className="p-5 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-200 flex flex-wrap items-center justify-between gap-4 shadow-xl">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-lg">
+              🚗⚡
+            </div>
+            <div>
+              <h4 className="font-extrabold text-white text-sm">
+                Driver Portal: Add Your Own Tesla & Driver Profile
+              </h4>
+              <p className="text-xs text-amber-300/80">
+                You can create your own Driver account with custom vehicle details, or sign in to accept pools.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => openDriverAuth('register')}
+              className="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-extrabold text-xs hover:bg-amber-400 transition cursor-pointer shadow-md shadow-amber-500/20"
+            >
+              + Create Driver Account
+            </button>
+            <button
+              onClick={() => openDriverAuth('login')}
+              className="px-4 py-2 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 font-bold text-xs hover:bg-slate-700 transition cursor-pointer"
+            >
+              Driver Sign In
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Driver Header Banner */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-amber-950/40 to-slate-900 border border-slate-800 p-6 sm:p-8 shadow-2xl">
         <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -158,13 +209,13 @@ export default function DriverDashboardPage() {
           <div>
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold mb-3">
               <Zap className="w-3.5 h-3.5 text-amber-400 fill-current" />
-              <span>Driver Console • Banani Road 11 Hub</span>
+              <span>Driver Console • {activeDriver.vehicle?.currentZone || 'Banani'} Hub</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center space-x-3">
-              <span>Jashim & Bullet Dashboard</span>
+              <span>{activeDriver.name} & {activeDriver.vehicle?.name || 'Tesla Bullet'} Dashboard</span>
             </h1>
             <p className="mt-1.5 text-xs sm:text-sm text-slate-300 max-w-xl">
-              Manage your 3-seat electric Tesla <strong className="text-amber-400">Bullet</strong>, monitor live seat occupancy, and drive Nusrat & Rafiq safely through Dhaka traffic.
+              Pilot your 3-seat electric Tesla <strong className="text-amber-400">{activeDriver.vehicle?.name || 'Bullet'}</strong> ({activeDriver.vehicle?.licensePlate || 'DHAKA-METRO'}), monitor live seat occupancy, and accept passenger pools.
             </p>
           </div>
 
@@ -172,10 +223,11 @@ export default function DriverDashboardPage() {
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => quickLogin(jashim)}
-                className="text-xs px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 transition flex items-center space-x-1 font-semibold"
+                className="text-xs px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 transition flex items-center space-x-1 font-semibold cursor-pointer"
+                title="1-Click Demo Login as Jashim"
               >
                 <UserCheck className="w-3.5 h-3.5" />
-                <span>Log in as Jashim</span>
+                <span>Demo Driver (Jashim)</span>
               </button>
 
               <Link
@@ -197,7 +249,7 @@ export default function DriverDashboardPage() {
               }`}
             >
               <span className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-slate-950 animate-ping' : 'bg-slate-500'}`} />
-              <span>{isOnline ? 'BULLET ONLINE (ACCEPTING RIDES)' : 'BULLET OFFLINE'}</span>
+              <span>{isOnline ? `${(activeDriver.vehicle?.name || 'TESLA').toUpperCase()} ONLINE (ACCEPTING RIDES)` : 'VEHICLE OFFLINE'}</span>
             </button>
           </div>
         </div>
@@ -622,6 +674,13 @@ export default function DriverDashboardPage() {
           </div>
         </div>
       </div>
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        defaultTab={authModalTab}
+        defaultRole={authModalRole}
+      />
     </div>
   );
 }

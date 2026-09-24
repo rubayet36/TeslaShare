@@ -22,4 +22,8 @@ export class CreateRideRequestDto {
   @IsOptional()
   @IsBoolean()
   isPooled?: boolean = true;
+
+  @IsOptional()
+  @IsBoolean()
+  autoMatch?: boolean = false;
 }
