@@ -33,6 +33,28 @@ The MVP is seeded with a deterministic story cast that validates all system dyna
 
 ---
 
+## 🔐 Authentication & Role-Based Authorization (JWT + Bcrypt)
+
+The platform implements industry-standard, production-grade JWT authentication and role-based access control (RBAC):
+
+| Feature | Status | Implementation Details |
+| :--- | :--- | :--- |
+| **Passenger Registration** | ✅ Built | `POST /api/auth/register` (hashes password, sets initial wallet balance) |
+| **Passenger Login** | ✅ Built | `POST /api/auth/login` (verifies bcrypt hash, returns JWT token) |
+| **Driver Login** | ✅ Built | `POST /api/auth/login` (authenticates driver, returns vehicle profile) |
+| **Password Hashing** | ✅ Built | `bcryptjs` with salt round factor of 10 |
+| **JWT Authentication** | ✅ Built | `@nestjs/jwt` & `passport-jwt` with 7-day token expiration |
+| **NestJS Auth Guard** | ✅ Built | `JwtAuthGuard` protecting authenticated endpoints |
+| **Role-Based Authorization** | ✅ Built | `RolesGuard` + `@Roles(Role.DRIVER, Role.PASSENGER)` decorators |
+| **User Profile Endpoint** | ✅ Built | `GET /api/auth/me` (retrieves current authenticated user & vehicle) |
+| **Logout** | ✅ Built | Client-side removal of `dhaka_tesla_pool_jwt_token` from `localStorage` |
+
+> 🔑 **Default Test Credentials for Story Cast**:
+> All seeded accounts (**Jashim**, **Nusrat**, **Rafiq**, **Shirin**) use password: **`password123`**.
+> You can also click any cast member in the **Sign In** modal for instant 1-click JWT authentication!
+
+---
+
 ## 💰 Fare Engine & Financial Precision (Integer Poysha)
 
 To prevent floating-point rounding errors common in financial applications, **all monetary values are computed and stored as integer Poysha** ($1\text{ BDT} = 100\text{ Poysha}$).
