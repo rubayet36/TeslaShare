@@ -48,6 +48,7 @@ model User {
   email          String?             @unique
   phone          String              @unique
   name           String
+  passwordHash   String?
   role           Role                @default(PASSENGER)
   walletPoysha   Int                 @default(100000) // Default 1000 BDT in Poysha
   vehicle        Vehicle?
