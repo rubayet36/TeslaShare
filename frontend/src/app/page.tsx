@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useCast } from '../context/CastContext';
 import { WalletCard } from '../components/WalletCard';
 import { RideHistoryCard } from '../components/RideHistoryCard';
@@ -13,12 +14,28 @@ import Link from 'next/link';
 
 export default function PassengerPage() {
   const { currentUser, isAuthenticated } = useCast();
+  const router = useRouter();
   const [mapPickup, setMapPickup] = useState('Banani');
   const [mapDestination, setMapDestination] = useState('Mohakhali');
+
+  useEffect(() => {
+    if (isAuthenticated && currentUser && currentUser.role === 'DRIVER') {
+      router.replace('/driver');
+    }
+  }, [isAuthenticated, currentUser, router]);
 
   // IF NOT AUTHENTICATED: RENDER SIGN IN / SIGN UP PAGE ONLY
   if (!isAuthenticated || !currentUser) {
     return <AuthStandaloneView initialTab="login" />;
+  }
+
+  // IF DRIVER: REDIRECT TO DRIVER CONSOLE
+  if (currentUser.role === 'DRIVER') {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center text-xs text-amber-400 font-semibold">
+        Redirecting to Driver Console...
+      </div>
+    );
   }
 
   return (
@@ -38,23 +55,6 @@ export default function PassengerPage() {
           <p className="mt-2 text-sm text-slate-300 leading-relaxed">
             Select your pickup and destination on the map below to request a ride. Match compatible Tesla pools across Dhaka, enjoy fixed 3-seat capacity protection, and save 30% on your fare.
           </p>
-
-          {/* If a Driver logs into the passenger page, offer quick switch to driver console */}
-          {currentUser.role === 'DRIVER' && (
-            <div className="mt-4 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between text-xs">
-              <div className="flex items-center space-x-2 text-amber-300 font-semibold">
-                <Car className="w-4 h-4 text-amber-400" />
-                <span>You are signed in with a Driver account ({currentUser.name}). Switch to your Driver Console to accept passenger requests.</span>
-              </div>
-              <Link
-                href="/driver"
-                className="px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-bold hover:bg-amber-400 transition flex items-center space-x-1"
-              >
-                <span>Driver Console</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-          )}
 
           <div className="mt-4 flex flex-wrap gap-4 text-xs text-slate-400">
             <div className="flex items-center space-x-1.5">

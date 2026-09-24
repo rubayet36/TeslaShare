@@ -42,24 +42,22 @@ export function Navbar() {
               </div>
             </Link>
 
-            {/* Navigation Tabs */}
-            <div className="flex items-center space-x-2 bg-slate-800/80 p-1.5 rounded-xl border border-slate-700/60">
-              <Link
-                href="/"
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-700/60 transition-all flex items-center space-x-1.5"
-              >
-                <UserIcon className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Passenger Booking</span>
-              </Link>
-
-              <Link
-                href="/driver"
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/30 hover:bg-amber-500/20 transition-all flex items-center space-x-1.5"
-              >
-                <Car className="w-3.5 h-3.5 text-amber-400" />
-                <span>Driver Console</span>
-              </Link>
-            </div>
+            {/* Role Portal Indicator - solely defined by authentication */}
+            {isAuthenticated && currentUser && (
+              <div className="hidden sm:flex items-center">
+                {currentUser.role === 'DRIVER' ? (
+                  <div className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold">
+                    <Car className="w-4 h-4 text-amber-400" />
+                    <span>Tesla Driver Console</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
+                    <UserIcon className="w-4 h-4 text-emerald-400" />
+                    <span>Passenger Booking Portal</span>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Auth Controls & TeslaPay Wallet Pill */}
             <div className="flex items-center space-x-3">

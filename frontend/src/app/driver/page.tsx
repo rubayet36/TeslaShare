@@ -33,11 +33,19 @@ import {
   UserCheck,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { AuthModal } from '../../components/AuthModal';
 import { AuthStandaloneView } from '../../components/AuthStandaloneView';
 
 export default function DriverDashboardPage() {
+  const router = useRouter();
   const { cast, refreshUser, currentUser, quickLogin, isAuthenticated } = useCast();
+
+  useEffect(() => {
+    if (isAuthenticated && currentUser && currentUser.role === 'PASSENGER') {
+      router.replace('/');
+    }
+  }, [isAuthenticated, currentUser, router]);
 
   // Active driver is the currently authenticated driver user
   const activeDriver: User = (currentUser && currentUser.role === 'DRIVER')
@@ -182,40 +190,11 @@ export default function DriverDashboardPage() {
     );
   }
 
-  // IF LOGGED IN AS PASSENGER: PROMPT TO SWITCH OR SIGN IN AS DRIVER
+  // IF LOGGED IN AS PASSENGER: REDIRECT TO PASSENGER BOOKING
   if (currentUser.role !== 'DRIVER') {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-7 text-center space-y-4 text-white shadow-2xl">
-          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mx-auto">
-            <Car className="w-6 h-6" />
-          </div>
-          <h2 className="text-xl font-bold">Driver Portal Restricted</h2>
-          <p className="text-xs text-slate-300 leading-relaxed">
-            You are currently signed in as Passenger <strong>{currentUser.name}</strong>. To access the Driver Console, please sign in with a Driver account or create a new Driver account.
-          </p>
-          <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-center">
-            <Link
-              href="/"
-              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold transition text-white"
-            >
-              Passenger Booking
-            </Link>
-            <button
-              onClick={() => openDriverAuth('register')}
-              className="px-4 py-2.5 rounded-xl bg-amber-500 text-slate-950 text-xs font-bold hover:bg-amber-400 transition cursor-pointer"
-            >
-              + Register as Driver
-            </button>
-          </div>
-        </div>
-
-        <AuthModal
-          isOpen={isAuthModalOpen}
-          onClose={() => setIsAuthModalOpen(false)}
-          defaultTab={authModalTab}
-          defaultRole={authModalRole}
-        />
+      <div className="min-h-[60vh] flex items-center justify-center text-xs text-emerald-400 font-semibold">
+        Redirecting to Passenger Booking...
       </div>
     );
   }

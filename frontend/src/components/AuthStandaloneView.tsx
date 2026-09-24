@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useCast } from '../context/CastContext';
+import { useRouter } from 'next/navigation';
 import { Lock, Mail, Phone, User as UserIcon, Car, Zap, Shield, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 interface AuthStandaloneViewProps {
@@ -13,6 +14,7 @@ export function AuthStandaloneView({
   initialTab = 'login',
   initialRole = 'PASSENGER',
 }: AuthStandaloneViewProps) {
+  const router = useRouter();
   const { login, register } = useCast();
   const [tab, setTab] = useState<'login' | 'register'>(initialTab);
 
@@ -38,7 +40,12 @@ export function AuthStandaloneView({
     setError(null);
     setLoading(true);
     try {
-      await login(identifier, password);
+      const user = await login(identifier, password);
+      if (user.role === 'DRIVER') {
+        router.push('/driver');
+      } else {
+        router.push('/');
+      }
     } catch (err: any) {
       setError(err.message || 'Login failed. Please check credentials.');
     } finally {
@@ -51,7 +58,7 @@ export function AuthStandaloneView({
     setError(null);
     setLoading(true);
     try {
-      await register({
+      const user = await register({
         name,
         phone,
         email: email || undefined,
@@ -65,6 +72,11 @@ export function AuthStandaloneView({
             }
           : {}),
       });
+      if (user.role === 'DRIVER') {
+        router.push('/driver');
+      } else {
+        router.push('/');
+      }
     } catch (err: any) {
       setError(err.message || 'Registration failed.');
     } finally {

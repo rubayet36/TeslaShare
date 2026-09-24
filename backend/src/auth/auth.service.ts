@@ -35,7 +35,7 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
     const userRole = dto.role || Role.PASSENGER;
-    const initialWalletPoysha = userRole === Role.DRIVER ? 50000 : 100000;
+    const initialWalletPoysha = userRole === Role.DRIVER ? 0 : 100000;
 
     const user = await this.prisma.user.create({
       data: {
@@ -45,15 +45,19 @@ export class AuthService {
         passwordHash,
         role: userRole,
         walletPoysha: initialWalletPoysha,
-        transactions: {
-          create: [
-            {
-              amountPoysha: initialWalletPoysha,
-              type: TransactionType.TOPUP,
-              description: `${userRole === Role.DRIVER ? 'Driver' : 'TeslaPay'} initial wallet balance`,
-            },
-          ],
-        },
+        ...(initialWalletPoysha > 0
+          ? {
+              transactions: {
+                create: [
+                  {
+                    amountPoysha: initialWalletPoysha,
+                    type: TransactionType.TOPUP,
+                    description: 'TeslaPay initial wallet balance',
+                  },
+                ],
+              },
+            }
+          : {}),
         ...(userRole === Role.DRIVER
           ? {
               vehicle: {
