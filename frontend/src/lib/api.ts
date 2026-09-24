@@ -1,4 +1,7 @@
 let rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+if (!rawApiUrl.includes('.') && !rawApiUrl.includes('localhost')) {
+  rawApiUrl = `${rawApiUrl}.onrender.com`;
+}
 if (!rawApiUrl.startsWith('http://') && !rawApiUrl.startsWith('https://')) {
   rawApiUrl = `https://${rawApiUrl}`;
 }
