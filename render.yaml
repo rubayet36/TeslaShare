@@ -1,8 +1,9 @@
 services:
-  # 1. Backend Service (NestJS REST API)
+  # 1. Backend Service (NestJS REST API) - Free Tier
   - type: web
     name: dhaka-tesla-backend
     env: node
+    plan: free
     rootDir: backend
     buildCommand: npm install && npx prisma db push && npm run seed && npm run build
     startCommand: npm run start:prod
@@ -16,10 +17,11 @@ services:
           name: dhaka-tesla-db
           property: connectionString
 
-  # 2. Frontend Service (Next.js 16 App)
+  # 2. Frontend Service (Next.js 16 App) - Free Tier
   - type: web
     name: dhaka-tesla-frontend
     env: node
+    plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
     startCommand: npm run start
@@ -33,7 +35,7 @@ services:
           property: host
 
 databases:
-  # 3. PostgreSQL Database Instance
+  # 3. PostgreSQL Database Instance - Free Tier
   - name: dhaka-tesla-db
     databaseName: dhaka_tesla_pool
     user: dhaka_tesla_user
