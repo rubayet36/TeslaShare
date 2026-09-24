@@ -6,7 +6,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
   app.enableCors({
-    origin: (origin, callback) => {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
       if (!origin) return callback(null, true);
       const allowed = [
         process.env.FRONTEND_URL,
@@ -41,6 +44,16 @@ async function bootstrap() {
   const port = process.env.PORT ?? 3001;
   await app.listen(port);
   console.log(`🚀 Dhaka Tesla Pool API is running on http://localhost:${port}/api`);
+
+  // Auto Keep-Awake for Render Free Tier (Pings every 10 mins so service never sleeps)
+  const selfUrl = process.env.RENDER_EXTERNAL_URL || process.env.KEEP_AWAKE_URL;
+  if (selfUrl) {
+    const pingIntervalMs = 10 * 60 * 1000;
+    setInterval(() => {
+      const pingTarget = selfUrl.endsWith('/api/ping') ? selfUrl : `${selfUrl}/api/ping`;
+      fetch(pingTarget).catch(() => {});
+    }, pingIntervalMs);
+  }
 }
 bootstrap();
 
