@@ -16,6 +16,11 @@ services:
         fromDatabase:
           name: dhaka-tesla-db
           property: connectionString
+      - key: FRONTEND_URL
+        fromService:
+          type: web
+          name: dhaka-tesla-frontend
+          property: host
 
   # 2. Frontend Service (Next.js 16 App) - Free Tier
   - type: web
