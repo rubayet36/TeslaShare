@@ -256,6 +256,32 @@ export async function fetchRideById(rideId: string): Promise<RideRecord> {
   return await res.json();
 }
 
+export async function fetchPoolsApi(status?: string): Promise<any[]> {
+  try {
+    const url = status ? `${API_BASE}/pools?status=${status}` : `${API_BASE}/pools`;
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
+export async function updateRideStatusApi(rideId: string, status: string, driverId?: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/rides/${rideId}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status, driverId }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `Failed to update ride status to ${status}`);
+  }
+
+  return await res.json();
+}
+
 export function poyshaToBdt(poysha: number): number {
   return Math.round((poysha / 100) * 100) / 100;
 }
@@ -264,6 +290,7 @@ export function formatBdt(poysha: number): string {
   const bdt = poyshaToBdt(poysha);
   return `৳ ${bdt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
+
 
 
 
