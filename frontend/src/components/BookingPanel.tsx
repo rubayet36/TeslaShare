@@ -7,17 +7,43 @@ import { fetchFareEstimate, submitRideRequest, FareQuote, formatBdt } from '../l
 import { MapPin, Navigation, Users, Zap, Shield, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
 
 interface BookingPanelProps {
+  pickup?: string;
+  destination?: string;
+  onPickupChange?: (pickup: string) => void;
+  onDestinationChange?: (destination: string) => void;
   onRouteSelected?: (pickup: string, destination: string) => void;
 }
 
-export function BookingPanel({ onRouteSelected }: BookingPanelProps) {
+export function BookingPanel({
+  pickup: externalPickup,
+  destination: externalDestination,
+  onPickupChange,
+  onDestinationChange,
+  onRouteSelected,
+}: BookingPanelProps) {
   const { currentUser, setActiveRide, refreshUser } = useCast();
 
-  // Story cast presets
-  const initialDest = currentUser.name === 'Rafiq' ? 'Gulshan 1' : 'Mohakhali';
+  // Internal fallback state if props not provided
+  const [internalPickup, setInternalPickup] = useState('Banani');
+  const [internalDestination, setInternalDestination] = useState(
+    currentUser.name === 'Rafiq' ? 'Gulshan 1' : 'Mohakhali',
+  );
 
-  const [pickup, setPickup] = useState('Banani');
-  const [destination, setDestination] = useState(initialDest);
+  const pickup = externalPickup !== undefined ? externalPickup : internalPickup;
+  const destination = externalDestination !== undefined ? externalDestination : internalDestination;
+
+  const handlePickupChange = (newVal: string) => {
+    if (onPickupChange) onPickupChange(newVal);
+    else setInternalPickup(newVal);
+    if (onRouteSelected) onRouteSelected(newVal, destination);
+  };
+
+  const handleDestinationChange = (newVal: string) => {
+    if (onDestinationChange) onDestinationChange(newVal);
+    else setInternalDestination(newVal);
+    if (onRouteSelected) onRouteSelected(pickup, newVal);
+  };
+
   const [seats, setSeats] = useState(1);
   const [isPooled, setIsPooled] = useState(true);
   const [quote, setQuote] = useState<FareQuote | null>(null);
@@ -25,13 +51,6 @@ export function BookingPanel({ onRouteSelected }: BookingPanelProps) {
   const [bookingLoading, setBookingLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
-
-  // Sync destination if cast changes
-  useEffect(() => {
-    const dest = currentUser.name === 'Rafiq' ? 'Gulshan 1' : 'Mohakhali';
-    setDestination(dest);
-    if (onRouteSelected) onRouteSelected('Banani', dest);
-  }, [currentUser]);
 
   // Recalculate fare when parameters change
   useEffect(() => {
@@ -101,7 +120,7 @@ export function BookingPanel({ onRouteSelected }: BookingPanelProps) {
             <MapPin className="w-4 h-4 absolute left-3 top-3 text-amber-400" />
             <select
               value={pickup}
-              onChange={(e) => setPickup(e.target.value)}
+              onChange={(e) => handlePickupChange(e.target.value)}
               className="w-full bg-slate-950 border border-slate-700/80 rounded-xl py-2.5 pl-9 pr-3 text-sm font-medium text-white focus:outline-none focus:border-emerald-500 transition"
             >
               {DHAKA_MAP_ZONES.map((zone) => (
@@ -121,7 +140,7 @@ export function BookingPanel({ onRouteSelected }: BookingPanelProps) {
             <Navigation className="w-4 h-4 absolute left-3 top-3 text-emerald-400" />
             <select
               value={destination}
-              onChange={(e) => setDestination(e.target.value)}
+              onChange={(e) => handleDestinationChange(e.target.value)}
               className="w-full bg-slate-950 border border-slate-700/80 rounded-xl py-2.5 pl-9 pr-3 text-sm font-medium text-white focus:outline-none focus:border-emerald-500 transition"
             >
               {DHAKA_MAP_ZONES.map((zone) => (

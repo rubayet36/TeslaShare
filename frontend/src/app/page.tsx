@@ -13,8 +13,18 @@ export default function PassengerPage() {
   const { currentUser } = useCast();
   const [mapPickup, setMapPickup] = useState('Banani');
   const [mapDestination, setMapDestination] = useState(
-    currentUser.name === 'Rafiq' ? 'Gulshan 1' : 'Mohakhali',
+    currentUser.name === 'Rafiq' ? 'Gulshan 1' : currentUser.name === 'Shirin' ? 'Dhanmondi' : 'Mohakhali',
   );
+
+  React.useEffect(() => {
+    if (currentUser.name === 'Rafiq') {
+      setMapDestination('Gulshan 1');
+    } else if (currentUser.name === 'Shirin') {
+      setMapDestination('Dhanmondi');
+    } else {
+      setMapDestination('Mohakhali');
+    }
+  }, [currentUser.id]);
 
   return (
     <div className="space-y-6">
@@ -95,10 +105,10 @@ export default function PassengerPage() {
 
           {/* Booking Panel with Real-time Fare Calculator */}
           <BookingPanel
-            onRouteSelected={(pickup, dest) => {
-              setMapPickup(pickup);
-              setMapDestination(dest);
-            }}
+            pickup={mapPickup}
+            destination={mapDestination}
+            onPickupChange={setMapPickup}
+            onDestinationChange={setMapDestination}
           />
 
           {/* Interactive Leaflet Map Visualizer */}
@@ -106,6 +116,8 @@ export default function PassengerPage() {
             <DhakaMapDynamic
               selectedPickup={mapPickup}
               selectedDestination={mapDestination}
+              onSelectPickup={setMapPickup}
+              onSelectDestination={setMapDestination}
             />
           </div>
 
