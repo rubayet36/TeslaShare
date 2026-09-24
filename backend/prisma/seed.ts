@@ -26,16 +26,7 @@ async function main() {
       email: 'jashim@tesla-pool.dhaka',
       passwordHash: defaultPasswordHash,
       role: Role.DRIVER,
-      walletPoysha: 50000, // 500 BDT
-      transactions: {
-        create: [
-          {
-            amountPoysha: 50000,
-            type: TransactionType.TOPUP,
-            description: 'Driver initial wallet credit',
-          },
-        ],
-      },
+      walletPoysha: 0,
     },
   });
 
