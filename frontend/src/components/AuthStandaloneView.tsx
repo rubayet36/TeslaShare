@@ -1,36 +1,46 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { useCast } from '../context/CastContext';
-import { useRouter } from 'next/navigation';
-import { Lock, Mail, Phone, User as UserIcon, Car, Zap, Shield, ArrowRight, CheckCircle2 } from 'lucide-react';
+import React, { useState } from "react";
+import { useCast } from "../context/CastContext";
+import { useRouter } from "next/navigation";
+import {
+  Lock,
+  Mail,
+  Phone,
+  User as UserIcon,
+  Car,
+  Zap,
+  Shield,
+  ArrowRight,
+  CheckCircle2,
+} from "lucide-react";
 
 interface AuthStandaloneViewProps {
-  initialTab?: 'login' | 'register';
-  initialRole?: 'PASSENGER' | 'DRIVER';
+  initialTab?: "login" | "register";
+  initialRole?: "PASSENGER" | "DRIVER";
 }
 
 export function AuthStandaloneView({
-  initialTab = 'login',
-  initialRole = 'PASSENGER',
+  initialTab = "login",
+  initialRole = "PASSENGER",
 }: AuthStandaloneViewProps) {
   const router = useRouter();
   const { login, register } = useCast();
-  const [tab, setTab] = useState<'login' | 'register'>(initialTab);
+  const [tab, setTab] = useState<"login" | "register">(initialTab);
 
   // Login form state
-  const [identifier, setIdentifier] = useState('');
-  const [password, setPassword] = useState('');
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
 
   // Register form state
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [regPassword, setRegPassword] = useState('');
-  const [role, setRole] = useState<'PASSENGER' | 'DRIVER'>(initialRole);
-  const [vehicleName, setVehicleName] = useState('Tesla EV');
-  const [vehicleModel, setVehicleModel] = useState('Electric 3-Wheeler');
-  const [licensePlate, setLicensePlate] = useState('');
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [role, setRole] = useState<"PASSENGER" | "DRIVER">(initialRole);
+  const [vehicleName, setVehicleName] = useState("Tesla EV");
+  const [vehicleModel, setVehicleModel] = useState("Electric 3-Wheeler");
+  const [licensePlate, setLicensePlate] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,13 +51,13 @@ export function AuthStandaloneView({
     setLoading(true);
     try {
       const user = await login(identifier, password);
-      if (user.role === 'DRIVER') {
-        router.push('/driver');
+      if (user.role === "DRIVER") {
+        router.push("/driver");
       } else {
-        router.push('/');
+        router.push("/");
       }
     } catch (err: any) {
-      setError(err.message || 'Login failed. Please check credentials.');
+      setError(err.message || "Login failed. Please check credentials.");
     } finally {
       setLoading(false);
     }
@@ -64,21 +74,23 @@ export function AuthStandaloneView({
         email: email || undefined,
         password: regPassword,
         role,
-        ...(role === 'DRIVER'
+        ...(role === "DRIVER"
           ? {
               vehicleName,
               vehicleModel,
-              licensePlate: licensePlate || `DHAKA-METRO-${Date.now().toString().slice(-4)}`,
+              licensePlate:
+                licensePlate ||
+                `DHAKA-METRO-${Date.now().toString().slice(-4)}`,
             }
           : {}),
       });
-      if (user.role === 'DRIVER') {
-        router.push('/driver');
+      if (user.role === "DRIVER") {
+        router.push("/driver");
       } else {
-        router.push('/');
+        router.push("/");
       }
     } catch (err: any) {
-      setError(err.message || 'Registration failed.');
+      setError(err.message || "Registration failed.");
     } finally {
       setLoading(false);
     }
@@ -108,13 +120,13 @@ export function AuthStandaloneView({
           <button
             type="button"
             onClick={() => {
-              setTab('login');
+              setTab("login");
               setError(null);
             }}
             className={`py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
-              tab === 'login'
-                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
-                : 'text-slate-400 hover:text-white'
+              tab === "login"
+                ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20"
+                : "text-slate-400 hover:text-white"
             }`}
           >
             <Lock className="w-3.5 h-3.5" />
@@ -124,13 +136,13 @@ export function AuthStandaloneView({
           <button
             type="button"
             onClick={() => {
-              setTab('register');
+              setTab("register");
               setError(null);
             }}
             className={`py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
-              tab === 'register'
-                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
-                : 'text-slate-400 hover:text-white'
+              tab === "register"
+                ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20"
+                : "text-slate-400 hover:text-white"
             }`}
           >
             <UserIcon className="w-3.5 h-3.5" />
@@ -145,7 +157,7 @@ export function AuthStandaloneView({
         )}
 
         {/* TAB 1: SIGN IN */}
-        {tab === 'login' ? (
+        {tab === "login" ? (
           <form onSubmit={handleLoginSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">
@@ -190,7 +202,7 @@ export function AuthStandaloneView({
                 <div className="w-4 h-4 rounded-full border-2 border-slate-950 border-t-transparent animate-spin" />
               ) : (
                 <>
-                  <span>Sign In</span>
+                  <span>Sign In with JWT</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -264,11 +276,11 @@ export function AuthStandaloneView({
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => setRole('PASSENGER')}
+                  onClick={() => setRole("PASSENGER")}
                   className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
-                    role === 'PASSENGER'
-                      ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400'
-                      : 'border-slate-800 text-slate-400 hover:bg-slate-800/40'
+                    role === "PASSENGER"
+                      ? "bg-emerald-500/10 border-emerald-500 text-emerald-400"
+                      : "border-slate-800 text-slate-400 hover:bg-slate-800/40"
                   }`}
                 >
                   <UserIcon className="w-3.5 h-3.5" />
@@ -277,11 +289,11 @@ export function AuthStandaloneView({
 
                 <button
                   type="button"
-                  onClick={() => setRole('DRIVER')}
+                  onClick={() => setRole("DRIVER")}
                   className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
-                    role === 'DRIVER'
-                      ? 'bg-amber-500/10 border-amber-500 text-amber-400'
-                      : 'border-slate-800 text-slate-400 hover:bg-slate-800/40'
+                    role === "DRIVER"
+                      ? "bg-amber-500/10 border-amber-500 text-amber-400"
+                      : "border-slate-800 text-slate-400 hover:bg-slate-800/40"
                   }`}
                 >
                   <Car className="w-3.5 h-3.5" />
@@ -291,7 +303,7 @@ export function AuthStandaloneView({
             </div>
 
             {/* Driver Vehicle Input Fields */}
-            {role === 'DRIVER' && (
+            {role === "DRIVER" && (
               <div className="p-3.5 bg-slate-950/80 border border-amber-500/30 rounded-2xl space-y-2.5 animate-fade-in">
                 <div className="text-[11px] font-bold text-amber-400 flex items-center space-x-1">
                   <Car className="w-3.5 h-3.5" />

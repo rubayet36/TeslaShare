@@ -1,0 +1,40 @@
+services:
+  # 1. Backend Service (NestJS REST API)
+  - type: web
+    name: dhaka-tesla-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install && npx prisma db push && npm run seed && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dhaka-tesla-db
+          property: connectionString
+
+  # 2. Frontend Service (Next.js 16 App)
+  - type: web
+    name: dhaka-tesla-frontend
+    env: node
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: dhaka-tesla-backend
+          property: url
+
+databases:
+  # 3. PostgreSQL Database Instance
+  - name: dhaka-tesla-db
+    databaseName: dhaka_tesla_pool
+    user: postgres
+    plan: free

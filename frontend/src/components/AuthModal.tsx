@@ -1,33 +1,47 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { useCast } from '../context/CastContext';
-import { X, Lock, Mail, Phone, User as UserIcon, Car, ShieldCheck, ArrowRight } from 'lucide-react';
+import React, { useState } from "react";
+import { useCast } from "../context/CastContext";
+import {
+  X,
+  Lock,
+  Mail,
+  Phone,
+  User as UserIcon,
+  Car,
+  ShieldCheck,
+  ArrowRight,
+} from "lucide-react";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  defaultTab?: 'login' | 'register';
-  defaultRole?: 'PASSENGER' | 'DRIVER';
+  defaultTab?: "login" | "register";
+  defaultRole?: "PASSENGER" | "DRIVER";
 }
 
-export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultRole = 'PASSENGER' }: AuthModalProps) {
+export function AuthModal({
+  isOpen,
+  onClose,
+  defaultTab = "login",
+  defaultRole = "PASSENGER",
+}: AuthModalProps) {
   const { login, register, quickLogin, cast } = useCast();
-  const [tab, setTab] = useState<'login' | 'register'>(defaultTab);
+  const [tab, setTab] = useState<"login" | "register">(defaultTab);
 
   // Login form state
-  const [identifier, setIdentifier] = useState('');
-  const [password, setPassword] = useState('');
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
 
   // Register form state
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [regPassword, setRegPassword] = useState('');
-  const [role, setRole] = useState<'PASSENGER' | 'DRIVER'>(defaultRole);
-  const [vehicleName, setVehicleName] = useState('Tesla Bullet');
-  const [vehicleModel, setVehicleModel] = useState('Electric 3-Wheeler');
-  const [licensePlate, setLicensePlate] = useState('');
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [role, setRole] = useState<"PASSENGER" | "DRIVER">(defaultRole);
+  const [vehicleName, setVehicleName] = useState("Tesla Bullet");
+  const [vehicleModel, setVehicleModel] = useState("Electric 3-Wheeler");
+  const [licensePlate, setLicensePlate] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +63,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultRole =
       await login(identifier, password);
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Login failed. Please check credentials.');
+      setError(err.message || "Login failed. Please check credentials.");
     } finally {
       setLoading(false);
     }
@@ -66,17 +80,19 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultRole =
         email: email || undefined,
         password: regPassword,
         role,
-        ...(role === 'DRIVER'
+        ...(role === "DRIVER"
           ? {
               vehicleName,
               vehicleModel,
-              licensePlate: licensePlate || `DHAKA-METRO-${Date.now().toString().slice(-4)}`,
+              licensePlate:
+                licensePlate ||
+                `DHAKA-METRO-${Date.now().toString().slice(-4)}`,
             }
           : {}),
       });
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Registration failed.');
+      setError(err.message || "Registration failed.");
     } finally {
       setLoading(false);
     }
@@ -89,7 +105,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultRole =
       await quickLogin(castUser);
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Quick login failed');
+      setError(err.message || "Quick login failed");
     } finally {
       setLoading(false);
     }
@@ -110,30 +126,34 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultRole =
         <div className="flex border-b border-slate-800 mb-6">
           <button
             onClick={() => {
-              setTab('login');
+              setTab("login");
               setError(null);
             }}
             className={`pb-3 px-4 text-sm font-bold transition-all relative ${
-              tab === 'login' ? 'text-emerald-400' : 'text-slate-400 hover:text-slate-200'
+              tab === "login"
+                ? "text-emerald-400"
+                : "text-slate-400 hover:text-slate-200"
             }`}
           >
             Sign In (JWT)
-            {tab === 'login' && (
+            {tab === "login" && (
               <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-400 rounded-full" />
             )}
           </button>
 
           <button
             onClick={() => {
-              setTab('register');
+              setTab("register");
               setError(null);
             }}
             className={`pb-3 px-4 text-sm font-bold transition-all relative ${
-              tab === 'register' ? 'text-emerald-400' : 'text-slate-400 hover:text-slate-200'
+              tab === "register"
+                ? "text-emerald-400"
+                : "text-slate-400 hover:text-slate-200"
             }`}
           >
             Create Account
-            {tab === 'register' && (
+            {tab === "register" && (
               <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-400 rounded-full" />
             )}
           </button>
@@ -146,7 +166,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultRole =
         )}
 
         {/* TAB 1: LOGIN */}
-        {tab === 'login' ? (
+        {tab === "login" ? (
           <div>
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div>
@@ -188,7 +208,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultRole =
                 disabled={loading}
                 className="w-full py-2.5 rounded-xl font-bold text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 cursor-pointer"
               >
-                {loading ? 'Authenticating...' : 'Sign In'}
+                {loading ? "Authenticating..." : "Sign In with JWT"}
               </button>
             </form>
           </div>
@@ -196,7 +216,9 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultRole =
           /* TAB 2: REGISTER */
           <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Full Name</label>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">
+                Full Name
+              </label>
               <input
                 type="text"
                 required
@@ -209,7 +231,9 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultRole =
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Phone Number</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Phone Number
+                </label>
                 <input
                   type="text"
                   required
@@ -221,7 +245,9 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultRole =
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Email (Optional)</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Email (Optional)
+                </label>
                 <input
                   type="email"
                   placeholder="tanvir@example.com"
@@ -233,7 +259,9 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultRole =
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Password</label>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">
+                Password
+              </label>
               <input
                 type="password"
                 required
@@ -246,15 +274,17 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultRole =
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Role</label>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">
+                Role
+              </label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => setRole('PASSENGER')}
+                  onClick={() => setRole("PASSENGER")}
                   className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center space-x-1.5 ${
-                    role === 'PASSENGER'
-                      ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400'
-                      : 'border-slate-800 text-slate-400 hover:bg-slate-800/40'
+                    role === "PASSENGER"
+                      ? "bg-emerald-500/10 border-emerald-500 text-emerald-400"
+                      : "border-slate-800 text-slate-400 hover:bg-slate-800/40"
                   }`}
                 >
                   <UserIcon className="w-3.5 h-3.5" />
@@ -263,11 +293,11 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultRole =
 
                 <button
                   type="button"
-                  onClick={() => setRole('DRIVER')}
+                  onClick={() => setRole("DRIVER")}
                   className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center space-x-1.5 ${
-                    role === 'DRIVER'
-                      ? 'bg-amber-500/10 border-amber-500 text-amber-400'
-                      : 'border-slate-800 text-slate-400 hover:bg-slate-800/40'
+                    role === "DRIVER"
+                      ? "bg-amber-500/10 border-amber-500 text-amber-400"
+                      : "border-slate-800 text-slate-400 hover:bg-slate-800/40"
                   }`}
                 >
                   <Car className="w-3.5 h-3.5" />
@@ -276,9 +306,11 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultRole =
               </div>
             </div>
 
-            {role === 'DRIVER' && (
+            {role === "DRIVER" && (
               <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-xl space-y-2">
-                <span className="text-[11px] font-semibold text-amber-400">Driver Vehicle Details</span>
+                <span className="text-[11px] font-semibold text-amber-400">
+                  Driver Vehicle Details
+                </span>
                 <input
                   type="text"
                   placeholder="Vehicle Name (e.g. Red Lightning)"
@@ -301,7 +333,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultRole =
               disabled={loading}
               className="w-full py-2.5 rounded-xl font-bold text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 mt-2"
             >
-              {loading ? 'Creating Account...' : 'Register & Log In'}
+              {loading ? "Creating Account..." : "Register & Log In"}
             </button>
           </form>
         )}
